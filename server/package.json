@@ -2,13 +2,14 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "index.js",
   "engines": {
     "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "nodemon --exec ts-node src/index.ts",
-    "build": "tsc",
+    "dev": "nodemon --exec tsx src/index.ts",
+    "build": "node esbuild.config.mjs",
     "start": "node dist/index.js"
   },
   "keywords": [],
@@ -27,8 +28,9 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.5.0",
+    "esbuild": "^0.27.4",
     "nodemon": "^3.1.14",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }

@@ -46,7 +46,7 @@ export interface PlaylistSong {
   id: number
   playlist_id: number
   song_id: number
-  song: Song
+  song: Song | Song[]
 }
 
 export interface YouTubePlaylistItem {

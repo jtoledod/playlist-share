@@ -37,7 +37,7 @@ async function fetchPlaylistTracks(playlistId: string): Promise<YouTubePlaylistI
   let nextPageToken: string | null = null
 
   do {
-    const response = await axios.get(`${BASE_URL}/playlistItems`, {
+    const response: { data: { items: any[], nextPageToken?: string | null } } = await axios.get(`${BASE_URL}/playlistItems`, {
       params: {
         part: 'snippet',
         playlistId: playlistId,
@@ -63,7 +63,7 @@ async function fetchPlaylistTracks(playlistId: string): Promise<YouTubePlaylistI
       })
     }
 
-    nextPageToken = response.data.nextPageToken
+    nextPageToken = response.data.nextPageToken ?? null
   } while (nextPageToken)
 
   return tracks
