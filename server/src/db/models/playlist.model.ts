@@ -1,18 +1,19 @@
-const supabase = require('../index')
+import supabase from '../index'
+import { Playlist, PlaylistCreateInput, PlaylistSong } from '../../types'
 
 const playlistModel = {
-  async create({ yt_id, title, description, thumbnail }) {
+  async create(input: PlaylistCreateInput): Promise<Playlist> {
     const { data, error } = await supabase
       .from('playlists')
-      .insert([{ yt_id, title, description, thumbnail }])
+      .insert([{ yt_id: input.yt_id, title: input.title, description: input.description, thumbnail: input.thumbnail }])
       .select()
       .single()
 
     if (error) throw error
-    return data
+    return data as Playlist
   },
 
-  async getByYoutubeId(yt_id) {
+  async getByYoutubeId(yt_id: string): Promise<Playlist | null> {
     const { data, error } = await supabase
       .from('playlists')
       .select('*')
@@ -20,10 +21,10 @@ const playlistModel = {
       .single()
 
     if (error && error.code !== 'PGRST116') throw error
-    return data
+    return data as Playlist | null
   },
 
-  async getById(id) {
+  async getById(id: number): Promise<Playlist | null> {
     const { data, error } = await supabase
       .from('playlists')
       .select('*')
@@ -31,10 +32,10 @@ const playlistModel = {
       .single()
 
     if (error && error.code !== 'PGRST116') throw error
-    return data
+    return data as Playlist | null
   },
 
-  async addSong(playlistId, songId) {
+  async addSong(playlistId: number, songId: number): Promise<PlaylistSong> {
     const { data, error } = await supabase
       .from('playlist_songs')
       .insert([{ playlist_id: playlistId, song_id: songId }])
@@ -42,21 +43,23 @@ const playlistModel = {
       .single()
 
     if (error) throw error
-    return data
+    return data as PlaylistSong
   },
 
-  async getSongs(playlistId) {
+  async getSongs(playlistId: number): Promise<PlaylistSong[]> {
     const { data, error } = await supabase
       .from('playlist_songs')
       .select(`
         id,
+        playlist_id,
+        song_id,
         song:songs(*)
       `)
       .eq('playlist_id', playlistId)
 
     if (error) throw error
-    return data
+    return data as PlaylistSong[]
   }
 }
 
-module.exports = playlistModel
+export default playlistModel

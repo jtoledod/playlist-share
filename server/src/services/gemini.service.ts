@@ -1,10 +1,11 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai')
+import { GoogleGenerativeAI } from '@google/generative-ai'
+import { AiData } from '../types'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
-const analyzeSong = async (title, artist) => {
+export async function analyzeSong(title: string, artist: string): Promise<AiData> {
   const prompt = `
 Analyze the song "${title}" by ${artist}.
 
@@ -27,7 +28,7 @@ Keep it concise and return ONLY the JSON object.
 
     const jsonMatch = response.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0])
+      return JSON.parse(jsonMatch[0]) as AiData
     }
 
     return {
@@ -44,5 +45,3 @@ Keep it concise and return ONLY the JSON object.
     }
   }
 }
-
-module.exports = { analyzeSong }

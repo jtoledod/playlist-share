@@ -1,9 +1,10 @@
-const axios = require('axios')
+import axios from 'axios'
+import { YouTubePlaylistData, YouTubePlaylistItem } from '../types'
 
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || ''
 const BASE_URL = 'https://www.googleapis.com/youtube/v3'
 
-function extractPlaylistId(url) {
+export function extractPlaylistId(url: string): string | null {
   try {
     const urlObj = new URL(url)
     return urlObj.searchParams.get('list')
@@ -12,7 +13,7 @@ function extractPlaylistId(url) {
   }
 }
 
-async function fetchPlaylistDetails(playlistId) {
+async function fetchPlaylistDetails(playlistId: string): Promise<{ title: string; description: string | null; thumbnail: string | null }> {
   const response = await axios.get(`${BASE_URL}/playlists`, {
     params: {
       part: 'snippet',
@@ -26,14 +27,14 @@ async function fetchPlaylistDetails(playlistId) {
 
   return {
     title: item.snippet.title,
-    description: item.snippet.description,
-    thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url
+    description: item.snippet.description || null,
+    thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url || null
   }
 }
 
-async function fetchPlaylistTracks(playlistId) {
-  const tracks = []
-  let nextPageToken = null
+async function fetchPlaylistTracks(playlistId: string): Promise<YouTubePlaylistItem[]> {
+  const tracks: YouTubePlaylistItem[] = []
+  let nextPageToken: string | null = null
 
   do {
     const response = await axios.get(`${BASE_URL}/playlistItems`, {
@@ -58,7 +59,7 @@ async function fetchPlaylistTracks(playlistId) {
         artist: snippet.videoOwnerChannelTitle || 'Unknown Artist',
         yt_id: videoId,
         yt_url: `https://www.youtube.com/watch?v=${videoId}`,
-        thumbnail: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url
+        thumbnail: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || null
       })
     }
 
@@ -68,7 +69,7 @@ async function fetchPlaylistTracks(playlistId) {
   return tracks
 }
 
-async function getPlaylistTracks(url) {
+export async function getPlaylistTracks(url: string): Promise<YouTubePlaylistData> {
   const playlistId = extractPlaylistId(url)
 
   if (!playlistId) {
@@ -82,12 +83,9 @@ async function getPlaylistTracks(url) {
 
   return {
     yt_id: playlistId,
-    ...details,
+    title: details.title,
+    description: details.description,
+    thumbnail: details.thumbnail,
     tracks
   }
-}
-
-module.exports = {
-  extractPlaylistId,
-  getPlaylistTracks
 }

@@ -1,7 +1,7 @@
-require('dotenv').config()
-const express = require('express')
-const cors = require('cors')
-const playlistRoutes = require('./routes/playlist.routes')
+import 'dotenv/config'
+import express, { Request, Response } from 'express'
+import cors from 'cors'
+import playlistRoutes from './routes/playlist.routes'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -11,7 +11,7 @@ app.use(express.json())
 
 app.use('/api/playlists', playlistRoutes)
 
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok' })
 })
 

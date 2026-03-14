@@ -1,15 +1,16 @@
-const supabase = require('../index')
+import supabase from '../index'
+import { Song, SongCreateInput, AiData, LoadStatus } from '../../types'
 
 const songModel = {
-  async create({ title, artist, yt_id, yt_url, thumbnail }) {
+  async create(input: SongCreateInput): Promise<Song> {
     const { data, error } = await supabase
       .from('songs')
       .insert([{
-        title,
-        artist,
-        yt_id,
-        yt_url,
-        thumbnail,
+        title: input.title,
+        artist: input.artist,
+        yt_id: input.yt_id,
+        yt_url: input.yt_url,
+        thumbnail: input.thumbnail,
         load_status: 'pending',
         ai_data: {}
       }])
@@ -17,10 +18,10 @@ const songModel = {
       .single()
 
     if (error) throw error
-    return data
+    return data as Song
   },
 
-  async getByTitleAndArtist(title, artist) {
+  async getByTitleAndArtist(title: string, artist: string): Promise<Song | null> {
     const { data, error } = await supabase
       .from('songs')
       .select('*')
@@ -29,10 +30,10 @@ const songModel = {
       .single()
 
     if (error && error.code !== 'PGRST116') throw error
-    return data
+    return data as Song | null
   },
 
-  async getById(id) {
+  async getById(id: number): Promise<Song | null> {
     const { data, error } = await supabase
       .from('songs')
       .select('*')
@@ -40,10 +41,10 @@ const songModel = {
       .single()
 
     if (error && error.code !== 'PGRST116') throw error
-    return data
+    return data as Song | null
   },
 
-  async updateAiData(id, aiData) {
+  async updateAiData(id: number, aiData: AiData): Promise<Song> {
     const { data, error } = await supabase
       .from('songs')
       .update({
@@ -55,10 +56,10 @@ const songModel = {
       .single()
 
     if (error) throw error
-    return data
+    return data as Song
   },
 
-  async updateStatus(id, status) {
+  async updateStatus(id: number, status: LoadStatus): Promise<Song> {
     const { data, error } = await supabase
       .from('songs')
       .update({ load_status: status })
@@ -67,18 +68,18 @@ const songModel = {
       .single()
 
     if (error) throw error
-    return data
+    return data as Song
   },
 
-  async findOrCreate({ title, artist, yt_id, yt_url, thumbnail }) {
-    let song = await this.getByTitleAndArtist(title, artist)
+  async findOrCreate(input: SongCreateInput): Promise<Song> {
+    let song = await this.getByTitleAndArtist(input.title, input.artist)
 
     if (!song) {
-      song = await this.create({ title, artist, yt_id, yt_url, thumbnail })
+      song = await this.create(input)
     }
 
     return song
   }
 }
 
-module.exports = songModel
+export default songModel
