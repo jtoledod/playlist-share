@@ -6,10 +6,11 @@ const songModel = {
     const { data, error } = await supabase
       .from('songs')
       .insert([{
+        provider: input.provider,
         title: input.title,
         artist: input.artist,
-        yt_id: input.yt_id,
-        yt_url: input.yt_url,
+        external_id: input.external_id,
+        external_url: input.external_url,
         thumbnail: input.thumbnail,
         load_status: 'pending',
         ai_data: {}

@@ -16,14 +16,15 @@ export async function importPlaylist(req: Request, res: Response): Promise<void>
 
     const playlistData = await getPlaylistTracks(url)
 
-    const existingPlaylist = await playlistModel.getByYoutubeId(playlistData.yt_id)
+    const existingPlaylist = await playlistModel.getByExternalId(playlistData.provider, playlistData.external_id)
     if (existingPlaylist) {
       res.status(409).json({ error: 'Playlist already imported', playlistId: existingPlaylist.id })
       return
     }
 
     const playlist = await playlistModel.create({
-      yt_id: playlistData.yt_id,
+      provider: playlistData.provider,
+      external_id: playlistData.external_id,
       title: playlistData.title,
       description: playlistData.description,
       thumbnail: playlistData.thumbnail
@@ -32,10 +33,11 @@ export async function importPlaylist(req: Request, res: Response): Promise<void>
     const songs: Song[] = []
     for (const track of playlistData.tracks) {
       const song = await songModel.findOrCreate({
+        provider: playlistData.provider,
         title: track.title,
         artist: track.artist,
-        yt_id: track.yt_id,
-        yt_url: track.yt_url,
+        external_id: track.external_id,
+        external_url: track.external_url,
         thumbnail: track.thumbnail
       })
 

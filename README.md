@@ -1,18 +1,18 @@
-# 🎵 playlist-share (Alpha)
+# 🎵 playlist-share
 
-A collaborative web app for sharing and reviewing YouTube Music playlists enriched by AI.
+A collaborative web app for sharing and reviewing music playlists enriched by AI.
 
 ## Tech Stack
 
 * **Frontend:** Vue.js 3 (Composition API, Pinia, Vite, Tailwind CSS).
-* **Backend:** Node.js (Express).
+* **Backend:** Node.js (Express, ES Modules, esbuild).
 * **Intelligence:** Google Gemini 1.5 Flash (via SDK).
-* **Data APIs:** YouTube Data API v3 & Genius API.
+* **Data APIs:** YouTube, Spotify, Apple Music APIs (provider-agnostic).
 * **Database & Auth:** Supabase (PostgreSQL + Realtime).
 
 ## Features
 
-* Add YouTube Music playlists via URL
+* Add playlists from YouTube, Spotify, or Apple Music via URL
 * AI-powered song analysis (vibes, meaning, trivia)
 * Share playlists with other users
 * Rate and review songs
@@ -29,7 +29,7 @@ A collaborative web app for sharing and reviewing YouTube Music playlists enrich
 1. Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/jtoledod/playlist-share.git
 cd playlist-share
 ```
 

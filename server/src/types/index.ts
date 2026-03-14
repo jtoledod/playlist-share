@@ -1,5 +1,7 @@
 export type LoadStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
+export type MusicProvider = 'youtube' | 'spotify' | 'apple_music' | 'other'
+
 export interface AiData {
   adjectives: string[]
   meaning: string
@@ -8,7 +10,8 @@ export interface AiData {
 
 export interface Playlist {
   id: number
-  yt_id: string
+  provider: MusicProvider
+  external_id: string
   title: string
   description: string | null
   thumbnail: string | null
@@ -16,7 +19,8 @@ export interface Playlist {
 }
 
 export interface PlaylistCreateInput {
-  yt_id: string
+  provider: MusicProvider
+  external_id: string
   title: string
   description: string | null
   thumbnail: string | null
@@ -24,10 +28,11 @@ export interface PlaylistCreateInput {
 
 export interface Song {
   id: number
+  provider: MusicProvider
   title: string
   artist: string
-  yt_id: string
-  yt_url: string
+  external_id: string
+  external_url: string
   thumbnail: string | null
   load_status: LoadStatus
   ai_data: AiData
@@ -35,10 +40,11 @@ export interface Song {
 }
 
 export interface SongCreateInput {
+  provider: MusicProvider
   title: string
   artist: string
-  yt_id: string
-  yt_url: string
+  external_id: string
+  external_url: string
   thumbnail: string | null
 }
 
@@ -49,20 +55,21 @@ export interface PlaylistSong {
   song: Song | Song[]
 }
 
-export interface YouTubePlaylistItem {
+export interface ProviderTrackItem {
   title: string
   artist: string
-  yt_id: string
-  yt_url: string
+  external_id: string
+  external_url: string
   thumbnail: string | null
 }
 
-export interface YouTubePlaylistData {
-  yt_id: string
+export interface ProviderPlaylistData {
+  provider: MusicProvider
+  external_id: string
   title: string
   description: string | null
   thumbnail: string | null
-  tracks: YouTubePlaylistItem[]
+  tracks: ProviderTrackItem[]
 }
 
 export interface ImportPlaylistResponse {

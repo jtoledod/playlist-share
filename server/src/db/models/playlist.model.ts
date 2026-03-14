@@ -5,7 +5,13 @@ const playlistModel = {
   async create(input: PlaylistCreateInput): Promise<Playlist> {
     const { data, error } = await supabase
       .from('playlists')
-      .insert([{ yt_id: input.yt_id, title: input.title, description: input.description, thumbnail: input.thumbnail }])
+      .insert([{ 
+        provider: input.provider,
+        external_id: input.external_id, 
+        title: input.title, 
+        description: input.description, 
+        thumbnail: input.thumbnail 
+      }])
       .select()
       .single()
 
@@ -13,11 +19,12 @@ const playlistModel = {
     return data as Playlist
   },
 
-  async getByYoutubeId(yt_id: string): Promise<Playlist | null> {
+  async getByExternalId(provider: string, externalId: string): Promise<Playlist | null> {
     const { data, error } = await supabase
       .from('playlists')
       .select('*')
-      .eq('yt_id', yt_id)
+      .eq('provider', provider)
+      .eq('external_id', externalId)
       .single()
 
     if (error && error.code !== 'PGRST116') throw error
