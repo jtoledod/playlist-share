@@ -10,9 +10,12 @@ Analyze the song "${title}" by ${artist}.
 
 Provide a JSON object with the following structure:
 {
-  "adjectives": ["adj1", "adj2", "adj3"],
-  "meaning": "1-3 sentences about the core meaning",
-  "trivia": ["fact1", "fact2", "fact3"]
+  "adjectives": ["Nostalgic", "Gritty", "Atmospheric"],
+  "meaning": "A brief explanation of the lyrical theme and emotional weight.",
+  "trivia": [
+    "A fact about the recording process.",
+    "A note on the artist's inspiration."
+  ]
 }
 
 Keep it concise and return ONLY the JSON object.
@@ -21,12 +24,12 @@ Keep it concise and return ONLY the JSON object.
   try {
     const result = await model.generateContent(prompt)
     const response = result.response.text()
-    
+
     const jsonMatch = response.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0])
     }
-    
+
     return {
       adjectives: ['energetic', 'melodic', 'catchy'],
       meaning: 'A popular track with broad appeal.',
