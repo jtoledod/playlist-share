@@ -1,9 +1,9 @@
 import { Request, Response } from 'express'
-import { getPlaylistTracks } from '../services/youtube.service'
+import { getYouTubeService } from '../services/youtube.service'
 import { getGeniusService } from '../services/genius.service'
 import playlistModel from '../db/models/playlist.model'
 import songModel from '../db/models/song.model'
-import { processPlaylistSongs } from '../services/worker.service'
+import { getWorkerService } from '../services/worker.service'
 import { Song } from '../types'
 
 export async function importPlaylist(req: Request, res: Response): Promise<void> {
@@ -15,7 +15,7 @@ export async function importPlaylist(req: Request, res: Response): Promise<void>
       return
     }
 
-    const playlistData = await getPlaylistTracks(url)
+    const playlistData = await getYouTubeService().getPlaylistTracks(url)
 
     const existingPlaylist = await playlistModel.getByExternalId(playlistData.provider, playlistData.external_id)
     if (existingPlaylist) {
@@ -73,7 +73,7 @@ export async function importPlaylist(req: Request, res: Response): Promise<void>
     }
 
     setTimeout(() => {
-      processPlaylistSongs(songs).catch(err => {
+      getWorkerService().processPlaylistSongs(songs).catch(err => {
         console.error('Background worker error:', err)
       })
     }, 100)

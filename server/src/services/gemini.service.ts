@@ -1,12 +1,22 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { AiData } from '../types'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
+export interface AiData {
+  adjectives: string[]
+  meaning: string
+  trivia: string[]
+}
 
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+export class GeminiService {
+  private genAI: GoogleGenerativeAI
+  private model: any
 
-export async function analyzeSong(title: string, artist: string): Promise<AiData> {
-  const prompt = `
+  constructor(apiKey: string = process.env.GEMINI_API_KEY || '') {
+    this.genAI = new GoogleGenerativeAI(apiKey)
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  }
+
+  async analyzeSong(title: string, artist: string): Promise<AiData> {
+    const prompt = `
 Analyze the song "${title}" by ${artist}.
 
 Provide a JSON object with the following structure:
@@ -20,28 +30,38 @@ Provide a JSON object with the following structure:
 }
 
 Keep it concise and return ONLY the JSON object.
-  `
+    `
 
-  try {
-    const result = await model.generateContent(prompt)
-    const response = result.response.text()
+    try {
+      const result = await this.model.generateContent(prompt)
+      const response = result.response.text()
 
-    const jsonMatch = response.match(/\{[\s\S]*\}/)
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]) as AiData
-    }
+      const jsonMatch = response.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]) as AiData
+      }
 
-    return {
-      adjectives: ['energetic', 'melodic', 'catchy'],
-      meaning: 'A popular track with broad appeal.',
-      trivia: ['Released recently', 'Well-received by fans', 'High streaming numbers']
-    }
-  } catch (error) {
-    console.error('Gemini API error:', error)
-    return {
-      adjectives: ['unknown', 'unknown', 'unknown'],
-      meaning: 'Unable to analyze at this time.',
-      trivia: ['Data unavailable']
+      return {
+        adjectives: ['energetic', 'melodic', 'catchy'],
+        meaning: 'A popular track with broad appeal.',
+        trivia: ['Released recently', 'Well-received by fans', 'High streaming numbers']
+      }
+    } catch (error) {
+      console.error('Gemini API error:', error)
+      return {
+        adjectives: ['unknown', 'unknown', 'unknown'],
+        meaning: 'Unable to analyze at this time.',
+        trivia: ['Data unavailable']
+      }
     }
   }
+}
+
+let geminiService: GeminiService | null = null
+
+export function getGeminiService(): GeminiService {
+  if (!geminiService) {
+    geminiService = new GeminiService()
+  }
+  return geminiService
 }

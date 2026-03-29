@@ -2,11 +2,7 @@ export type LoadStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
 export type MusicProvider = 'youtube' | 'spotify' | 'apple_music' | 'other'
 
-export interface AiData {
-  adjectives: string[]
-  meaning: string
-  trivia: string[]
-}
+export type { AiData } from '../services/gemini.service'
 
 export interface Playlist {
   id: number
