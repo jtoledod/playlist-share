@@ -2,7 +2,8 @@ import axios from 'axios'
 import { ProviderPlaylistData, ProviderTrackItem } from '../types'
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || ''
-const BASE_URL = 'https://www.googleapis.com/youtube/v3'
+const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3'
+const YOUTUBE_MUSIC_BASE_URL = 'https://www.music.youtube.com'
 
 export function extractPlaylistId(url: string): string | null {
   try {
@@ -14,7 +15,7 @@ export function extractPlaylistId(url: string): string | null {
 }
 
 async function fetchPlaylistDetails(playlistId: string): Promise<{ title: string; description: string | null; thumbnail: string | null }> {
-  const response = await axios.get(`${BASE_URL}/playlists`, {
+    const response = await axios.get(`${YOUTUBE_API_BASE_URL}/playlists`, {
     params: {
       part: 'snippet',
       id: playlistId,
@@ -37,7 +38,7 @@ async function fetchPlaylistTracks(playlistId: string): Promise<ProviderTrackIte
   let nextPageToken: string | null = null
 
   do {
-    const response: { data: { items: any[], nextPageToken?: string | null } } = await axios.get(`${BASE_URL}/playlistItems`, {
+    const response: { data: { items: any[], nextPageToken?: string | null } } = await axios.get(`${YOUTUBE_API_BASE_URL}/playlistItems`, {
       params: {
         part: 'snippet',
         playlistId: playlistId,
@@ -58,7 +59,7 @@ async function fetchPlaylistTracks(playlistId: string): Promise<ProviderTrackIte
         title: snippet.title,
         artist: snippet.videoOwnerChannelTitle || 'Unknown Artist',
         external_id: videoId,
-        external_url: `https://www.youtube.com/watch?v=${videoId}`,
+        external_url: `${YOUTUBE_MUSIC_BASE_URL}/watch?v=${videoId}`,
         thumbnail: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || null
       })
     }
