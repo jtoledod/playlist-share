@@ -1,4 +1,5 @@
-import 'dotenv/config'
+import './env'
+
 import express, { Request, Response } from 'express'
 import cors from 'cors'
 import playlistRoutes from './routes/playlist.routes'

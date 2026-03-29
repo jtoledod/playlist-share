@@ -36,6 +36,10 @@ export interface Song {
   thumbnail: string | null
   load_status: LoadStatus
   ai_data: AiData
+  genius_id?: number
+  album_name?: string
+  album_art?: string
+  release_date?: string
   created_at: string
 }
 
@@ -46,6 +50,10 @@ export interface SongCreateInput {
   external_id: string
   external_url: string
   thumbnail: string | null
+  genius_id?: number
+  album_name?: string
+  album_art?: string
+  release_date?: string
 }
 
 export interface PlaylistSong {

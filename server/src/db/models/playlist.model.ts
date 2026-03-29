@@ -1,9 +1,9 @@
-import supabase from '../index'
+import { getSupabase } from '../index'
 import { Playlist, PlaylistCreateInput, PlaylistSong } from '../../types'
 
 const playlistModel = {
   async create(input: PlaylistCreateInput): Promise<Playlist> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('playlists')
       .insert([{ 
         provider: input.provider,
@@ -20,7 +20,7 @@ const playlistModel = {
   },
 
   async getByExternalId(provider: string, externalId: string): Promise<Playlist | null> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('playlists')
       .select('*')
       .eq('provider', provider)
@@ -32,7 +32,7 @@ const playlistModel = {
   },
 
   async getById(id: number): Promise<Playlist | null> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('playlists')
       .select('*')
       .eq('id', id)
@@ -43,7 +43,7 @@ const playlistModel = {
   },
 
   async addSong(playlistId: number, songId: number): Promise<PlaylistSong> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('playlist_songs')
       .insert([{ playlist_id: playlistId, song_id: songId }])
       .select()
@@ -54,7 +54,7 @@ const playlistModel = {
   },
 
   async getSongs(playlistId: number): Promise<PlaylistSong[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('playlist_songs')
       .select(`
         id,

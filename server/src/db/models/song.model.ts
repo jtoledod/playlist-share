@@ -1,9 +1,9 @@
-import supabase from '../index'
+import { getSupabase } from '../index'
 import { Song, SongCreateInput, AiData, LoadStatus } from '../../types'
 
 const songModel = {
   async create(input: SongCreateInput): Promise<Song> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('songs')
       .insert([{
         provider: input.provider,
@@ -13,7 +13,11 @@ const songModel = {
         external_url: input.external_url,
         thumbnail: input.thumbnail,
         load_status: 'pending',
-        ai_data: {}
+        ai_data: {},
+        genius_id: input.genius_id || null,
+        album_name: input.album_name || null,
+        album_art: input.album_art || null,
+        release_date: input.release_date || null
       }])
       .select()
       .single()
@@ -23,7 +27,7 @@ const songModel = {
   },
 
   async getByTitleAndArtist(title: string, artist: string): Promise<Song | null> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('songs')
       .select('*')
       .ilike('title', title)
@@ -35,7 +39,7 @@ const songModel = {
   },
 
   async getById(id: number): Promise<Song | null> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('songs')
       .select('*')
       .eq('id', id)
@@ -46,7 +50,7 @@ const songModel = {
   },
 
   async updateAiData(id: number, aiData: AiData): Promise<Song> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('songs')
       .update({
         ai_data: aiData,
@@ -61,7 +65,7 @@ const songModel = {
   },
 
   async updateStatus(id: number, status: LoadStatus): Promise<Song> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabase()
       .from('songs')
       .update({ load_status: status })
       .eq('id', id)
