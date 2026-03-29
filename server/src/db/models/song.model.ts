@@ -6,18 +6,14 @@ const songModel = {
     const { data, error } = await getSupabase()
       .from('songs')
       .insert([{
-        provider: input.provider,
         title: input.title,
         artist: input.artist,
-        external_id: input.external_id,
-        external_url: input.external_url,
-        thumbnail: input.thumbnail,
+        thumbnail: input.thumbnail || null,
+        metadata_provider: input.metadata_provider || null,
+        external_id: input.external_id || null,
         load_status: 'pending',
         ai_data: {},
-        genius_id: input.genius_id || null,
-        album_name: input.album_name || null,
-        album_art: input.album_art || null,
-        release_date: input.release_date || null
+        album_id: input.album_id || null
       }])
       .select()
       .single()
@@ -29,7 +25,7 @@ const songModel = {
   async getByTitleAndArtist(title: string, artist: string): Promise<Song | null> {
     const { data, error } = await getSupabase()
       .from('songs')
-      .select('*')
+      .select('*, album:albums(*)')
       .ilike('title', title)
       .ilike('artist', artist)
       .single()
@@ -41,7 +37,7 @@ const songModel = {
   async getById(id: number): Promise<Song | null> {
     const { data, error } = await getSupabase()
       .from('songs')
-      .select('*')
+      .select('*, album:albums(*)')
       .eq('id', id)
       .single()
 

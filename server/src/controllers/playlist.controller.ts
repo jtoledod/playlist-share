@@ -3,6 +3,7 @@ import { getYouTubeService } from '../services/youtube.service'
 import { getGeniusService } from '../services/genius.service'
 import playlistModel from '../db/models/playlist.model'
 import songModel from '../db/models/song.model'
+import albumModel from '../db/models/album.model'
 import { getWorkerService } from '../services/worker.service'
 import { Song } from '../types'
 
@@ -30,39 +31,52 @@ export async function importPlaylist(req: Request, res: Response): Promise<void>
 
     for (const track of playlistData.tracks) {
       let artist = track.artist
-      let albumName: string | undefined
-      let albumArt: string | undefined
-      let releaseDate: string | undefined
-      let geniusId: number | undefined
+      let albumId: number | undefined
+      let metadataProvider: 'genius' | undefined
+      let geniusExternalId: string | undefined
 
       const searchQuery = `${track.title} ${track.artist}`.trim()
       const geniusResult = await geniusService.searchSong(searchQuery, track.title, track.artist)
 
       if (geniusResult) {
-        artist = geniusResult.artist
-        albumName = geniusResult.album
-        albumArt = geniusResult.albumArt
-        releaseDate = geniusResult.releaseDate
-        geniusId = geniusResult.id
-        console.log(`[Import] Enhanced with Genius: ${track.title} -> ${artist} (${albumName || 'unknown album'})`)
+        const detailedInfo = await geniusService.getSongDetails(geniusResult.id)
+
+        if (detailedInfo && detailedInfo.album) {
+          const album = await albumModel.upsert({
+            metadata_provider: 'genius',
+            external_id: String(geniusResult.id),
+            name: detailedInfo.album,
+            cover_art: detailedInfo.albumArt || null,
+            release_date: detailedInfo.releaseDate || null
+          })
+          albumId = album.id
+        }
+
+        metadataProvider = 'genius'
+        geniusExternalId = String(geniusResult.id)
+        artist = detailedInfo?.artist || geniusResult.artist
+        console.log(`[Import] Enhanced with Genius: ${track.title} -> ${artist} (${detailedInfo?.album || 'unknown album'})`)
       } else {
         console.log(`[Import] Using YouTube data: ${track.title} by ${artist}`)
       }
 
       const song = await songModel.findOrCreate({
-        provider: playlistData.provider,
         title: track.title,
         artist: artist,
-        external_id: track.external_id,
-        external_url: track.external_url,
         thumbnail: track.thumbnail,
-        genius_id: geniusId,
-        album_name: albumName,
-        album_art: albumArt,
-        release_date: releaseDate
+        metadata_provider: metadataProvider,
+        external_id: geniusExternalId,
+        album_id: albumId
       })
 
-      await playlistModel.addSong(playlist.id, song.id)
+      await playlistModel.addSong({
+        playlist_id: playlist.id,
+        song_id: song.id,
+        music_provider: playlistData.provider,
+        external_id: track.external_id,
+        external_url: track.external_url,
+        thumbnail: track.thumbnail
+      })
       songs.push(song)
     }
 

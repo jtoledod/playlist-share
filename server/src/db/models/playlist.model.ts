@@ -1,5 +1,5 @@
 import { getSupabase } from '../index'
-import { Playlist, PlaylistCreateInput, PlaylistSong } from '../../types'
+import { Playlist, PlaylistCreateInput, PlaylistSong, PlaylistSongCreateInput } from '../../types'
 
 const playlistModel = {
   async create(input: PlaylistCreateInput): Promise<Playlist> {
@@ -42,10 +42,17 @@ const playlistModel = {
     return data as Playlist | null
   },
 
-  async addSong(playlistId: number, songId: number): Promise<PlaylistSong> {
+  async addSong(input: PlaylistSongCreateInput): Promise<PlaylistSong> {
     const { data, error } = await getSupabase()
       .from('playlist_songs')
-      .insert([{ playlist_id: playlistId, song_id: songId }])
+      .insert([{ 
+        playlist_id: input.playlist_id, 
+        song_id: input.song_id,
+        music_provider: input.music_provider,
+        external_id: input.external_id,
+        external_url: input.external_url,
+        thumbnail: input.thumbnail || null
+      }])
       .select()
       .single()
 
@@ -60,7 +67,11 @@ const playlistModel = {
         id,
         playlist_id,
         song_id,
-        song:songs(*)
+        music_provider,
+        external_id,
+        external_url,
+        thumbnail,
+        song:songs(*, album:albums(*))
       `)
       .eq('playlist_id', playlistId)
 

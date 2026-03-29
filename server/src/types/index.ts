@@ -2,6 +2,8 @@ export type LoadStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
 export type MusicProvider = 'youtube' | 'spotify' | 'apple_music' | 'other'
 
+export type MetadataProvider = 'genius' | null
+
 export type { AiData } from '../services/gemini.service'
 
 export interface Playlist {
@@ -22,41 +24,57 @@ export interface PlaylistCreateInput {
   thumbnail: string | null
 }
 
+export interface Album {
+  id: number
+  metadata_provider: MetadataProvider
+  external_id: string | null
+  name: string | null
+  cover_art: string | null
+  release_date: string | null
+  created_at: string
+}
+
 export interface Song {
   id: number
-  provider: MusicProvider
+  metadata_provider: MetadataProvider
   title: string
   artist: string
-  external_id: string
-  external_url: string
+  external_id: string | null
   thumbnail: string | null
   load_status: LoadStatus
   ai_data: AiData
-  genius_id?: number
-  album_name?: string
-  album_art?: string
-  release_date?: string
+  album_id: number | null
+  album: Album | null
   created_at: string
 }
 
 export interface SongCreateInput {
-  provider: MusicProvider
   title: string
   artist: string
-  external_id: string
-  external_url: string
-  thumbnail: string | null
-  genius_id?: number
-  album_name?: string
-  album_art?: string
-  release_date?: string
+  thumbnail?: string
+  metadata_provider?: MetadataProvider
+  external_id?: string
+  album_id?: number
 }
 
 export interface PlaylistSong {
   id: number
   playlist_id: number
   song_id: number
+  music_provider: MusicProvider
+  external_id: string
+  external_url: string
+  thumbnail: string | null
   song: Song | Song[]
+}
+
+export interface PlaylistSongCreateInput {
+  playlist_id: number
+  song_id: number
+  music_provider: MusicProvider
+  external_id: string
+  external_url: string
+  thumbnail?: string
 }
 
 export interface ProviderTrackItem {
