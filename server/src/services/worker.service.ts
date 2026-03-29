@@ -1,6 +1,9 @@
 import songModel from '../db/models/song.model'
 import { getGeminiService } from './gemini.service'
 import { Song } from '../types'
+import { createLogger } from '../logger.js'
+
+const logger = createLogger('worker')
 
 const DEFAULT_THROTTLE_DELAY_MS = 2000
 
@@ -22,9 +25,9 @@ export class WorkerService {
 
         await songModel.updateAiData(song.id, aiData)
 
-        console.log(`Processed song: ${song.title}`)
+        logger.info({ songId: song.id, title: song.title }, 'Processed song')
       } catch (error) {
-        console.error(`Error processing song ${song.title}:`, error instanceof Error ? error.message : 'Unknown error')
+        logger.error({ songId: song.id, title: song.title, error: error instanceof Error ? error.message : 'Unknown error' }, 'Error processing song')
         await songModel.updateStatus(song.id, 'failed')
       }
 

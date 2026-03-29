@@ -1,5 +1,8 @@
 import axios from 'axios'
 import { ProviderPlaylistData, ProviderTrackItem } from '../types'
+import { createLogger } from '../logger.js'
+
+const logger = createLogger('youtube')
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || ''
 const YOUTUBE_API_BASE_URL = 'https://www.googleapis.com/youtube/v3'
@@ -32,7 +35,7 @@ export class YouTubeService {
   }
 
   async fetchPlaylistDetails(playlistId: string): Promise<YouTubePlaylistDetails> {
-    console.log(`[YouTube] GET ${YOUTUBE_API_BASE_URL}/playlists?part=snippet&id=${playlistId}`)
+    logger.debug({ url: `${YOUTUBE_API_BASE_URL}/playlists`, playlistId }, 'Fetching playlist details')
     const response = await axios.get(`${YOUTUBE_API_BASE_URL}/playlists`, {
       params: {
         part: 'snippet',
@@ -56,7 +59,7 @@ export class YouTubeService {
     let nextPageToken: string | null = null
 
     do {
-      console.log(`[YouTube] GET ${YOUTUBE_API_BASE_URL}/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&pageToken=${nextPageToken || 'none'}`)
+      logger.debug({ url: `${YOUTUBE_API_BASE_URL}/playlistItems`, playlistId, pageToken: nextPageToken || 'none' }, 'Fetching playlist tracks')
       const response: { data: { items: any[], nextPageToken?: string | null } } = await axios.get(`${YOUTUBE_API_BASE_URL}/playlistItems`, {
         params: {
           part: 'snippet',

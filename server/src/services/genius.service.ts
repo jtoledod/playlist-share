@@ -1,5 +1,7 @@
 import axios from 'axios';
+import { createLogger } from '../logger.js';
 
+const logger = createLogger('genius');
 const GENIUS_API_BASE = 'https://api.genius.com';
 
 export interface GeniusSongResult {
@@ -22,18 +24,18 @@ export class GeniusService {
 
   async searchSong(query: string, originalTitle: string, originalArtist: string): Promise<GeniusSongResult | null> {
     if (!this.accessToken || this.accessToken === 'your_genius_access_token') {
-      console.log('[Genius] No valid access token configured');
+      logger.warn('No valid access token configured');
       return null;
     }
 
     const cacheKey = query.toLowerCase().trim();
     if (this.cache.has(cacheKey)) {
-      console.log(`[Genius] Cache hit for: ${query}`);
+      logger.debug({ query }, 'Cache hit');
       return this.cache.get(cacheKey) || null;
     }
 
     try {
-      console.log(`[Genius] GET ${GENIUS_API_BASE}/search?q=${encodeURIComponent(query)}`)
+      logger.debug({ url: `${GENIUS_API_BASE}/search`, query }, 'Searching song');
       const response = await axios.get(`${GENIUS_API_BASE}/search`, {
         params: { q: query },
         headers: { Authorization: `Bearer ${this.accessToken}` },
@@ -42,7 +44,7 @@ export class GeniusService {
 
       const hits = response.data.response?.hits;
       if (!hits || hits.length === 0) {
-        console.log(`[Genius] No results for: ${query}`);
+        logger.debug({ query }, 'No results found');
         this.cache.set(cacheKey, null);
         return null;
       }
@@ -63,17 +65,17 @@ export class GeniusService {
         const artistMatches = normalizedResultArtist.includes(normalizedOriginalArtist) || normalizedOriginalArtist.includes(normalizedResultArtist)
 
         if (titleMatches && artistMatches) {
-          console.log(`[Genius] Match found: ${result.title} by ${result.artist}`)
+          logger.info({ title: result.title, artist: result.artist }, 'Match found');
           this.cache.set(cacheKey, result)
           return result
         }
       }
 
-      console.log(`[Genius] No matching song found for: ${originalTitle} by ${originalArtist}`)
+      logger.debug({ originalTitle, originalArtist }, 'No matching song found');
       this.cache.set(cacheKey, null)
       return null
     } catch (error: any) {
-      console.error('[Genius] Search error:', error.message);
+      logger.error({ error: error.message }, 'Search error');
       return null;
     }
   }
@@ -84,7 +86,7 @@ export class GeniusService {
     }
 
     try {
-      console.log(`[Genius] GET ${GENIUS_API_BASE}/songs/${geniusId}`)
+      logger.debug({ url: `${GENIUS_API_BASE}/songs/${geniusId}` }, 'Fetching song details');
       const response = await axios.get(`${GENIUS_API_BASE}/songs/${geniusId}`, {
         params: { text_format: 'plain' },
         headers: { Authorization: `Bearer ${this.accessToken}` },
@@ -93,7 +95,7 @@ export class GeniusService {
 
       return this.mapSongDetails(response.data.response.song);
     } catch (error: any) {
-      console.error('[Genius] Song details error:', error.message);
+      logger.error({ error: error.message }, 'Song details error');
       return null;
     }
   }
@@ -105,7 +107,7 @@ export class GeniusService {
       artist: result.primary_artist?.name || 'Unknown',
       album: result.album?.name,
       albumArt: result.album?.cover_art_url || result.header_image_url,
-      releaseDate: result.release_date_for_display,
+      releaseDate: result.release_date,
       lyricsUrl: result.url
     };
   }
@@ -117,7 +119,7 @@ export class GeniusService {
       artist: song.primary_artist?.name || 'Unknown',
       album: song.album?.name,
       albumArt: song.album?.cover_art_url || song.header_image_url,
-      releaseDate: song.release_date_for_display,
+      releaseDate: song.release_date,
       lyricsUrl: song.url
     };
   }
@@ -129,7 +131,7 @@ export function getGeniusService(): GeniusService {
   if (!geniusService) {
     const token = process.env.GENIUS_ACCESS_TOKEN;
     if (!token) {
-      console.warn('[Genius] No GENIUS_ACCESS_TOKEN configured');
+      logger.warn('No GENIUS_ACCESS_TOKEN configured');
     }
     geniusService = new GeniusService(token || '');
   }

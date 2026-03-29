@@ -16,3 +16,9 @@ ALTER TABLE playlist_songs ADD CONSTRAINT playlist_songs_playlist_id_song_id_mus
 
 -- Create index for music provider lookups
 CREATE INDEX IF NOT EXISTS idx_playlist_songs_music_provider ON playlist_songs(music_provider);
+
+-- Rename provider to metadata_provider in albums table
+ALTER TABLE albums RENAME COLUMN provider TO metadata_provider;
+
+-- Convert release_date to TIMESTAMP without time zone
+ALTER TABLE albums ALTER COLUMN release_date TYPE TIMESTAMP USING release_date::timestamp;

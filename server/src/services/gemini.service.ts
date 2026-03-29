@@ -1,4 +1,7 @@
 import { GoogleGenerativeAI, Schema, SchemaType } from '@google/generative-ai'
+import { createLogger } from '../logger.js'
+
+const logger = createLogger('gemini')
 
 export interface AiData {
   adjectives: string[]
@@ -48,12 +51,12 @@ export class GeminiService {
 
   async analyzeSong(title: string, artist: string): Promise<AiData> {
     const prompt = `Analyze the song "${title}" by ${artist}.`
-    console.log(`[Gemini] Prompt: ${prompt}`)
+    logger.debug({ prompt }, 'Analyzing song')
 
     try {
       const result = await this.model.generateContent(prompt)
       const response = result.response.text()
-      console.log(`[Gemini] Response (${response.length} chars)`)
+      logger.debug({ responseLength: response.length }, 'Received AI response')
 
       const parsed = JSON.parse(response) as AiData
 
@@ -67,7 +70,7 @@ export class GeminiService {
 
       throw new Error('Invalid response structure')
     } catch (error) {
-      console.error('Gemini API error:', error)
+      logger.error({ error }, 'Gemini API error')
       return {} as AiData
     }
   }

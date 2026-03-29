@@ -6,6 +6,9 @@ import songModel from '../db/models/song.model'
 import albumModel from '../db/models/album.model'
 import { getWorkerService } from '../services/worker.service'
 import { Song } from '../types'
+import { createLogger } from '../logger.js'
+
+const logger = createLogger('playlist')
 
 export async function importPlaylist(req: Request, res: Response): Promise<void> {
   try {
@@ -55,9 +58,9 @@ export async function importPlaylist(req: Request, res: Response): Promise<void>
         metadataProvider = 'genius'
         geniusExternalId = String(geniusResult.id)
         artist = detailedInfo?.artist || geniusResult.artist
-        console.log(`[Import] Enhanced with Genius: ${track.title} -> ${artist} (${detailedInfo?.album || 'unknown album'})`)
+        logger.info({ trackTitle: track.title, artist, album: detailedInfo?.album }, 'Enhanced with Genius')
       } else {
-        console.log(`[Import] Using YouTube data: ${track.title} by ${artist}`)
+        logger.info({ trackTitle: track.title, artist }, 'Using YouTube data')
       }
 
       const song = await songModel.findOrCreate({
@@ -83,7 +86,7 @@ export async function importPlaylist(req: Request, res: Response): Promise<void>
     if (process_ai) {
       setTimeout(() => {
         getWorkerService().processPlaylistSongs(songs).catch(err => {
-          console.error('Background worker error:', err)
+          logger.error({ error: err }, 'Background worker error')
         })
       }, 100)
     }
@@ -93,7 +96,7 @@ export async function importPlaylist(req: Request, res: Response): Promise<void>
       status: 'importing'
     })
   } catch (error) {
-    console.error('Error importing playlist:', error)
+    logger.error({ error }, 'Error importing playlist')
     res.status(500).json({ error: 'Failed to import playlist' })
   }
 }

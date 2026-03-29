@@ -3,6 +3,7 @@ import './env'
 import express, { Request, Response } from 'express'
 import cors from 'cors'
 import playlistRoutes from './routes/playlist.routes'
+import { logger } from './logger.js'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -17,5 +18,5 @@ app.get('/api/health', (req: Request, res: Response) => {
 })
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+  logger.info({ port: PORT }, 'Server started')
 })
