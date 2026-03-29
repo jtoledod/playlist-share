@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { createLogger } from '../logger.js';
+import { FuzzyMatcher } from '../utils/fuzzy-matcher.js';
 
 const logger = createLogger('genius');
 const GENIUS_API_BASE = 'https://api.genius.com';
@@ -49,23 +50,22 @@ export class GeniusService {
         return null;
       }
 
-      const normalizedOriginalTitle = originalTitle.toLowerCase().trim()
-      const normalizedOriginalArtist = originalArtist.toLowerCase().trim()
-
       for (const hit of hits) {
         if (hit.type !== 'song') {
           continue
         }
 
         const result = this.mapSongResult(hit.result)
-        const normalizedResultTitle = result.title.toLowerCase().trim()
-        const normalizedResultArtist = result.artist.toLowerCase().trim()
 
-        const titleMatches = normalizedResultTitle.includes(normalizedOriginalTitle) || normalizedOriginalTitle.includes(normalizedResultTitle)
-        const artistMatches = normalizedResultArtist.includes(normalizedOriginalArtist) || normalizedOriginalArtist.includes(normalizedResultArtist)
+        const { matches, titleScore, artistScore } = FuzzyMatcher.matchSong(
+          originalTitle,
+          originalArtist,
+          result.title,
+          result.artist
+        )
 
-        if (titleMatches && artistMatches) {
-          logger.info({ title: result.title, artist: result.artist }, 'Match found');
+        if (matches) {
+          logger.info({ title: result.title, artist: result.artist, titleScore, artistScore }, 'Match found');
           this.cache.set(cacheKey, result)
           return result
         }
