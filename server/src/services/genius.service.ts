@@ -20,7 +20,7 @@ export class GeniusService {
     this.accessToken = accessToken;
   }
 
-  async searchSong(query: string): Promise<GeniusSongResult | null> {
+  async searchSong(query: string, originalTitle: string, originalArtist: string): Promise<GeniusSongResult | null> {
     if (!this.accessToken || this.accessToken === 'your_genius_access_token') {
       console.log('[Genius] No valid access token configured');
       return null;
@@ -33,6 +33,7 @@ export class GeniusService {
     }
 
     try {
+      console.log(`[Genius] GET ${GENIUS_API_BASE}/search?q=${encodeURIComponent(query)}`)
       const response = await axios.get(`${GENIUS_API_BASE}/search`, {
         params: { q: query },
         headers: { Authorization: `Bearer ${this.accessToken}` },
@@ -46,10 +47,31 @@ export class GeniusService {
         return null;
       }
 
-      const result = this.mapSongResult(hits[0].result);
-      console.log(`[Genius] Found: ${result.title} by ${result.artist}`);
-      this.cache.set(cacheKey, result);
-      return result;
+      const normalizedOriginalTitle = originalTitle.toLowerCase().trim()
+      const normalizedOriginalArtist = originalArtist.toLowerCase().trim()
+
+      for (const hit of hits) {
+        if (hit.type !== 'song') {
+          continue
+        }
+
+        const result = this.mapSongResult(hit.result)
+        const normalizedResultTitle = result.title.toLowerCase().trim()
+        const normalizedResultArtist = result.artist.toLowerCase().trim()
+
+        const titleMatches = normalizedResultTitle.includes(normalizedOriginalTitle) || normalizedOriginalTitle.includes(normalizedResultTitle)
+        const artistMatches = normalizedResultArtist.includes(normalizedOriginalArtist) || normalizedOriginalArtist.includes(normalizedResultArtist)
+
+        if (titleMatches && artistMatches) {
+          console.log(`[Genius] Match found: ${result.title} by ${result.artist}`)
+          this.cache.set(cacheKey, result)
+          return result
+        }
+      }
+
+      console.log(`[Genius] No matching song found for: ${originalTitle} by ${originalArtist}`)
+      this.cache.set(cacheKey, null)
+      return null
     } catch (error: any) {
       console.error('[Genius] Search error:', error.message);
       return null;
@@ -62,6 +84,7 @@ export class GeniusService {
     }
 
     try {
+      console.log(`[Genius] GET ${GENIUS_API_BASE}/songs/${geniusId}`)
       const response = await axios.get(`${GENIUS_API_BASE}/songs/${geniusId}`, {
         params: { text_format: 'plain' },
         headers: { Authorization: `Bearer ${this.accessToken}` },

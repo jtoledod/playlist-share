@@ -18,6 +18,10 @@ export class YouTubeService {
     this.apiKey = apiKey
   }
 
+  private cleanArtistName(artist: string): string {
+    return artist.replace(/ - Topic$/, '').trim()
+  }
+
   extractPlaylistId(url: string): string | null {
     try {
       const urlObj = new URL(url)
@@ -28,6 +32,7 @@ export class YouTubeService {
   }
 
   async fetchPlaylistDetails(playlistId: string): Promise<YouTubePlaylistDetails> {
+    console.log(`[YouTube] GET ${YOUTUBE_API_BASE_URL}/playlists?part=snippet&id=${playlistId}`)
     const response = await axios.get(`${YOUTUBE_API_BASE_URL}/playlists`, {
       params: {
         part: 'snippet',
@@ -51,6 +56,7 @@ export class YouTubeService {
     let nextPageToken: string | null = null
 
     do {
+      console.log(`[YouTube] GET ${YOUTUBE_API_BASE_URL}/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&pageToken=${nextPageToken || 'none'}`)
       const response: { data: { items: any[], nextPageToken?: string | null } } = await axios.get(`${YOUTUBE_API_BASE_URL}/playlistItems`, {
         params: {
           part: 'snippet',
@@ -70,7 +76,7 @@ export class YouTubeService {
         const videoId = snippet.resourceId.videoId
         tracks.push({
           title: snippet.title,
-          artist: snippet.videoOwnerChannelTitle || 'Unknown Artist',
+          artist: this.cleanArtistName(snippet.videoOwnerChannelTitle) || 'Unknown Artist',
           external_id: videoId,
           external_url: `${YOUTUBE_MUSIC_BASE_URL}/watch?v=${videoId}`,
           thumbnail: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || null

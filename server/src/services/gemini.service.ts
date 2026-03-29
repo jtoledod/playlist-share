@@ -31,7 +31,7 @@ export class GeminiService {
   constructor(apiKey: string = process.env.GEMINI_API_KEY || '') {
     this.genAI = new GoogleGenerativeAI(apiKey)
     this.model = this.genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-3-flash-preview',
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: GeminiService.schema
@@ -48,10 +48,12 @@ export class GeminiService {
 
   async analyzeSong(title: string, artist: string): Promise<AiData> {
     const prompt = `Analyze the song "${title}" by ${artist}.`
+    console.log(`[Gemini] Prompt: ${prompt}`)
 
     try {
       const result = await this.model.generateContent(prompt)
       const response = result.response.text()
+      console.log(`[Gemini] Response (${response.length} chars)`)
 
       const parsed = JSON.parse(response) as AiData
 

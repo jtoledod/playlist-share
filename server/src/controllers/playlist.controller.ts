@@ -8,7 +8,7 @@ import { Song } from '../types'
 
 export async function importPlaylist(req: Request, res: Response): Promise<void> {
   try {
-    const { url } = req.body
+    const { url, process_ai = true } = req.body
 
     if (!url || !url.includes('youtube.com/playlist')) {
       res.status(400).json({ error: 'Invalid YouTube playlist URL' })
@@ -16,12 +16,6 @@ export async function importPlaylist(req: Request, res: Response): Promise<void>
     }
 
     const playlistData = await getYouTubeService().getPlaylistTracks(url)
-
-    const existingPlaylist = await playlistModel.getByExternalId(playlistData.provider, playlistData.external_id)
-    if (existingPlaylist) {
-      res.status(409).json({ error: 'Playlist already imported', playlistId: existingPlaylist.id })
-      return
-    }
 
     const playlist = await playlistModel.create({
       provider: playlistData.provider,
@@ -42,7 +36,7 @@ export async function importPlaylist(req: Request, res: Response): Promise<void>
       let geniusId: number | undefined
 
       const searchQuery = `${track.title} ${track.artist}`.trim()
-      const geniusResult = await geniusService.searchSong(searchQuery)
+      const geniusResult = await geniusService.searchSong(searchQuery, track.title, track.artist)
 
       if (geniusResult) {
         artist = geniusResult.artist
@@ -72,11 +66,13 @@ export async function importPlaylist(req: Request, res: Response): Promise<void>
       songs.push(song)
     }
 
-    setTimeout(() => {
-      getWorkerService().processPlaylistSongs(songs).catch(err => {
-        console.error('Background worker error:', err)
-      })
-    }, 100)
+    if (process_ai) {
+      setTimeout(() => {
+        getWorkerService().processPlaylistSongs(songs).catch(err => {
+          console.error('Background worker error:', err)
+        })
+      }, 100)
+    }
 
     res.status(202).json({
       playlistId: playlist.id,
