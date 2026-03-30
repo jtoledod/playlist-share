@@ -3,6 +3,7 @@ import './env'
 import express, { Request, Response } from 'express'
 import cors from 'cors'
 import playlistRoutes from './routes/playlist.routes'
+import shareRoutes from './routes/share.routes'
 import { logger } from './logger.js'
 
 const app = express()
@@ -12,6 +13,7 @@ app.use(cors())
 app.use(express.json())
 
 app.use('/api/playlists', playlistRoutes)
+app.use('/api/shares', shareRoutes)
 
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok' })

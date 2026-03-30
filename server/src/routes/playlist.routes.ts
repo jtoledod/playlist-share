@@ -1,8 +1,8 @@
 import { Router } from 'express'
-import { importPlaylist } from '../controllers/playlist.controller'
+import { playlistController } from '../controllers/playlist.controller'
 
 const router = Router()
 
-router.post('/import', importPlaylist)
+router.post('/import', (req, res) => playlistController.import(req, res))
 
 export default router

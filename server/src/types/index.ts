@@ -128,3 +128,56 @@ export interface ImportPlaylistResponse {
 export interface ErrorResponse {
   error: string
 }
+
+export type Reaction = 'do_not_like' | 'like' | 'love' | null
+
+export interface Share {
+  id: number
+  playlist_id: number
+  sender_id: string
+  receiver_id: string
+  created_at: string
+  playlist?: Playlist
+}
+
+export interface ShareCreateInput {
+  playlist_id: number
+  receiver_id: string
+}
+
+export interface SongReaction {
+  id: number
+  share_id: number
+  song_id: number
+  user_id: string
+  reaction: Reaction
+  created_at: string
+  updated_at: string
+}
+
+export interface SongReactionCreateInput {
+  share_id: number
+  song_id: number
+  user_id: string
+  reaction: Reaction
+}
+
+export interface ReviewComment {
+  id: number
+  share_id: number
+  song_id: number
+  parent_id: number | null
+  user_id: string
+  content: string
+  created_at: string
+  updated_at: string
+  replies?: ReviewComment[]
+}
+
+export interface ReviewCommentCreateInput {
+  share_id: number
+  song_id: number
+  parent_id?: number | null
+  user_id: string
+  content: string
+}

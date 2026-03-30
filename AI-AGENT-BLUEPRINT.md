@@ -2,7 +2,7 @@
 
 ## Overview
 
-Import YouTube playlists → Enrich metadata (Genius) → AI analysis (Gemini)
+Import YouTube playlists → Enrich metadata (Genius) → Share with friends → React & Comment on songs
 
 ## Stack
 
@@ -16,15 +16,20 @@ server/src/
 ├── env.ts                # Environment config
 ├── logger.ts             # Pino logger
 ├── types/index.ts        # TypeScript interfaces
+├── middleware/auth.ts    # Supabase auth middleware
 ├── services/
 │   ├── genius.service.ts     # Metadata enrichment
 │   ├── youtube.service.ts    # Playlist fetching
 │   ├── gemini.service.ts     # AI analysis
 │   ├── worker.metadata.service.ts  # Metadata worker
 │   └── worker.ai.service.ts       # AI worker
-├── controllers/playlist.controller.ts
-├── routes/playlist.routes.ts
-└── db/models/            # song, playlist, album models
+├── controllers/
+│   ├── playlist.controller.ts
+│   └── share.controller.ts
+├── routes/
+│   ├── playlist.routes.ts
+│   └── share.routes.ts
+└── db/models/            # song, playlist, album, artist, share, shareSongReaction, shareComment models
 ```
 
 ## Database Schema (PostgreSQL)
@@ -34,18 +39,69 @@ server/src/
 | Column | Type | Description |
 |--------|------|-------------|
 | id | SERIAL | PK |
-| metadata_provider | TEXT | Source of metadata |
+| metadata_provider | TEXT | Source of metadata (nullable) |
 | title, artist | TEXT | Song info |
-| external_id, thumbnail | TEXT | External data |
+| artist_id | INTEGER | FK to artists (nullable) |
+| external_id | TEXT | External data (nullable) |
+| thumbnail | TEXT | Song thumbnail |
 | metadata_status | TEXT | pending→enriching→completed/failed |
 | ai_status | TEXT | pending→processing→completed/failed |
 | ai_data | JSONB | Gemini response |
-| album_id | FK | To albums |
+| album_id | FK | To albums (nullable) |
 
-### playlists, albums, playlist_songs
-Standard relational tables. See migrations for full schema.
+### artists
 
-Migrations: `001` → `006` (apply in order)
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL | PK |
+| metadata_provider | TEXT | Source of metadata |
+| external_id | TEXT | External ID (nullable) |
+| name | TEXT | Artist name |
+| thumbnail | TEXT | Artist image (nullable) |
+| bio | TEXT | Artist bio (nullable) |
+
+### albums
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL | PK |
+| metadata_provider | TEXT | Source of metadata (nullable) |
+| external_id | TEXT | External ID (nullable) |
+| name | TEXT | Album name |
+| thumbnail | TEXT | Album cover (nullable) |
+| release_date | TEXT | Release date (nullable) |
+
+### shares
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL | PK |
+| playlist_id | INTEGER | FK to playlists |
+| sender_id | UUID | FK to auth.users |
+| receiver_id | UUID | FK to auth.users |
+
+### share_song_reactions
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL | PK |
+| share_id | INTEGER | FK to shares |
+| song_id | INTEGER | FK to songs |
+| user_id | UUID | FK to auth.users |
+| reaction | TEXT | 'do_not_like' \| 'like' \| 'love' \| null |
+
+### share_comments
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL | PK |
+| share_id | INTEGER | FK to shares |
+| song_id | INTEGER | FK to songs |
+| parent_id | INTEGER | FK to self (nullable - for replies) |
+| user_id | UUID | FK to auth.users |
+| content | TEXT | Comment text |
+
+Migrations: `001` → `012` (apply in order)
 
 ## Types
 
@@ -54,9 +110,35 @@ type MetadataStatus = 'pending' | 'enriching' | 'completed' | 'failed'
 type AiStatus = 'pending' | 'processing' | 'completed' | 'failed'
 type MusicProvider = 'youtube' | 'spotify' | 'apple_music' | 'other'
 type MetadataProvider = 'genius' | null
+type Reaction = 'do_not_like' | 'like' | 'love' | null
 
 interface AiData { adjectives: string[]; meaning: string; trivia: string[] }
-interface Song { id; metadata_provider; title; artist; metadata_status; ai_status; ai_data; ... }
+
+interface Share {
+  id: number
+  playlist_id: number
+  sender_id: string
+  receiver_id: string
+  created_at: string
+}
+
+interface SongReaction {
+  id: number
+  share_id: number
+  song_id: number
+  user_id: string
+  reaction: Reaction
+}
+
+interface ReviewComment {
+  id: number
+  share_id: number
+  song_id: number
+  parent_id: number | null
+  user_id: string
+  content: string
+  replies?: ReviewComment[]
+}
 ```
 
 ## API Routes
@@ -77,6 +159,31 @@ interface Song { id; metadata_provider; title; artist; metadata_status; ai_statu
 { "playlistId": 123, "status": "importing" }
 ```
 
+### Shares (requires auth)
+
+```
+POST   /api/shares              - Share playlist with user
+GET    /api/shares/sent         - List sent shares
+GET    /api/shares/received     - List received shares  
+GET    /api/shares/:id          - Get share with songs, reactions, comments
+```
+
+### Reactions
+
+```
+POST   /api/shares/:id/reactions     - Add/update reaction (song_id, reaction)
+DELETE /api/shares/:id/reactions/:songId - Remove reaction
+```
+
+### Comments
+
+```
+POST   /api/shares/:id/comments           - Add comment (song_id, content)
+PATCH  /api/shares/:id/comments/:commentId - Edit own comment
+DELETE /api/shares/:id/comments/:commentId - Delete own comment
+POST   /api/shares/:id/comments/:commentId/reply - Reply to comment
+```
+
 ## Workers
 
 ### MetadataWorkerService
@@ -90,7 +197,7 @@ class MetadataWorkerService {
 
 - 1s throttle, retries once on error
 - No retry when no results (proceeds to AI)
-- Updates metadata_status, album data
+- Updates metadata_status, links artist_id, album data
 
 ### AiWorkerService
 
@@ -139,9 +246,12 @@ npm run start  # node dist/index.js
 
 ## Architecture
 
-1. **Async** - Never block HTTP responses
-2. **Separation** - Metadata and AI as independent workers
-3. **Rate Limiting** - 1s (metadata), 2s (AI)
-4. **JSON Mode** - Gemini returns typed JSON
-5. **Structured Logging** - Pino with service context
-6. **Graceful Degradation** - AI runs even if metadata fails
+1. **Classes** - All services, models, controllers, and middleware use ES6 classes with singleton exports
+2. **Async** - Never block HTTP responses
+3. **Separation** - Metadata and AI as independent workers
+4. **Rate Limiting** - 1s (metadata), 2s (AI)
+5. **JSON Mode** - Gemini returns typed JSON
+6. **Structured Logging** - Pino with service context
+7. **Graceful Degradation** - AI runs even if metadata fails
+8. **Nullable Metadata** - external_id and metadata_provider nullable when no enrichment data
+9. **Auth Middleware** - Supabase JWT validation for protected routes
