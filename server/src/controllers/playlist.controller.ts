@@ -66,7 +66,6 @@ export async function importPlaylist(req: Request, res: Response): Promise<void>
       status: 'importing'
     })
   } catch (error: any) {
-    console.error('Import error:', error?.message || error)
     logger.error({ error: error?.message || error }, 'Error importing playlist')
     res.status(500).json({ error: 'Failed to import playlist', details: error?.message })
   }

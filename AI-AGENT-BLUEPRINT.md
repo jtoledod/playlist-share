@@ -1,12 +1,15 @@
 # playlist-share
 
 ## Overview
+
 Import YouTube playlists → Enrich metadata (Genius) → AI analysis (Gemini)
 
 ## Stack
+
 Node.js 22+, Express 5 (ESM), TypeScript, Supabase (PostgreSQL), Pino, Google Gemini
 
 ## Structure
+
 ```
 server/src/
 ├── index.ts              # Express entry
@@ -27,6 +30,7 @@ server/src/
 ## Database Schema (PostgreSQL)
 
 ### songs
+
 | Column | Type | Description |
 |--------|------|-------------|
 | id | SERIAL | PK |
@@ -41,9 +45,10 @@ server/src/
 ### playlists, albums, playlist_songs
 Standard relational tables. See migrations for full schema.
 
-Migrations: `001` → `005` (apply in order)
+Migrations: `001` → `006` (apply in order)
 
 ## Types
+
 ```typescript
 type MetadataStatus = 'pending' | 'enriching' | 'completed' | 'failed'
 type AiStatus = 'pending' | 'processing' | 'completed' | 'failed'
@@ -57,11 +62,13 @@ interface Song { id; metadata_provider; title; artist; metadata_status; ai_statu
 ## API Routes
 
 ### GET /api/health
+
 ```json
 { "status": "ok" }
 ```
 
 ### POST /api/playlists/import
+
 ```json
 // Request
 { "url": "https://youtube.com/playlist?list=xxx", "process_ai": true }
@@ -73,47 +80,57 @@ interface Song { id; metadata_provider; title; artist; metadata_status; ai_statu
 ## Workers
 
 ### MetadataWorkerService
+
 ```typescript
 class MetadataWorkerService {
   processMetadataBatch(songs: Song[]): Promise<void>
   processPendingMetadata(limit?: number): Promise<void>
 }
 ```
+
 - 1s throttle, retries once on error
 - No retry when no results (proceeds to AI)
 - Updates metadata_status, album data
 
 ### AiWorkerService
+
 ```typescript
 class AiWorkerService {
   processPlaylistSongs(songs: Song[]): Promise<void>
   processPendingAi(limit?: number): Promise<void>
 }
 ```
+
 - 2s throttle, no retry
 - Updates ai_status, ai_data
 
 ## Services
 
 ### YouTubeService
+
 ```typescript
 getPlaylistTracks(url: string): Promise<ProviderPlaylistData>
 ```
 
 ### GeniusService
+
 ```typescript
 searchSong(query, title, artist): Promise<GeniusSongResult | null>
 getSongDetails(id): Promise<GeniusSongResult | null>
 ```
+
 Uses fuzzy matching (Jaccard + Levenshtein)
 
 ### GeminiService
+
 ```typescript
 analyzeSong(title, artist): Promise<AiData>
 ```
+
 Model: gemini-3-flash-preview, JSON schema enforced
 
 ## Build
+
 ```bash
 npm run dev    # nodemon + tsx
 npm run build  # esbuild → dist/
@@ -121,6 +138,7 @@ npm run start  # node dist/index.js
 ```
 
 ## Architecture
+
 1. **Async** - Never block HTTP responses
 2. **Separation** - Metadata and AI as independent workers
 3. **Rate Limiting** - 1s (metadata), 2s (AI)

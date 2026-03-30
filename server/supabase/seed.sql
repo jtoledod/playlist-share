@@ -13,40 +13,40 @@ VALUES (
 );
 
 -- Insert sample songs
-INSERT INTO songs (provider, title, artist, external_id, external_url, thumbnail, load_status, ai_data, created_at)
+INSERT INTO songs (metadata_provider, title, artist, external_id, thumbnail, metadata_status, ai_status, ai_data, created_at)
 VALUES
   (
-    'youtube',
+    'genius',
     'Sample Song One',
     'Artist One',
     'dQw4w9WgXcQ',
-    'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     'https://i.ytimg.com/vi/dQw4w9WgXcQ/sddefault.jpg',
+    'completed',
     'completed',
     '{"adjectives": ["energetic", "uplifting"], "meaning": "A song about perseverance", "trivia": ["Won Grammy in 2020"]}',
     NOW()
   ),
   (
-    'youtube',
+    'genius',
     'Sample Song Two',
     'Artist Two',
     'abc123def456',
-    'https://www.youtube.com/watch?v=abc123def456',
     'https://i.ytimg.com/vi/abc123def456/sddefault.jpg',
+    'completed',
     'pending',
     '{}',
     NOW()
   );
 
 -- Link songs to playlist
-INSERT INTO playlist_songs (playlist_id, song_id, created_at)
-SELECT p.id, s.id, NOW()
+INSERT INTO playlist_songs (playlist_id, song_id, music_provider, external_id, external_url, thumbnail, created_at)
+SELECT p.id, s.id, 'youtube', s.external_id, 'https://www.youtube.com/watch?v=' || s.external_id, s.thumbnail, NOW()
 FROM playlists p, songs s
 WHERE p.external_id = 'PL1234567890abcdef'
 AND s.external_id = 'dQw4w9WgXcQ';
 
-INSERT INTO playlist_songs (playlist_id, song_id, created_at)
-SELECT p.id, s.id, NOW()
+INSERT INTO playlist_songs (playlist_id, song_id, music_provider, external_id, external_url, thumbnail, created_at)
+SELECT p.id, s.id, 'youtube', s.external_id, 'https://www.youtube.com/watch?v=' || s.external_id, s.thumbnail, NOW()
 FROM playlists p, songs s
 WHERE p.external_id = 'PL1234567890abcdef'
 AND s.external_id = 'abc123def456';

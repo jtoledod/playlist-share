@@ -1,5 +1,5 @@
 import { getSupabase } from '../index'
-import { Song, SongCreateInput, AiData, LoadStatus, MetadataStatus, AiStatus } from '../../types'
+import { Song, SongCreateInput, AiData, MetadataStatus, AiStatus } from '../../types'
 
 const songModel = {
   async create(input: SongCreateInput): Promise<Song> {
@@ -11,7 +11,6 @@ const songModel = {
         thumbnail: input.thumbnail || null,
         metadata_provider: input.metadata_provider || 'genius',
         external_id: input.external_id || '',
-        load_status: 'pending',
         metadata_status: 'pending',
         ai_status: 'pending',
         ai_data: {},
@@ -51,21 +50,8 @@ const songModel = {
     const { data, error } = await getSupabase()
       .from('songs')
       .update({
-        ai_data: aiData,
-        load_status: 'completed'
+        ai_data: aiData
       })
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) throw error
-    return data as Song
-  },
-
-  async updateStatus(id: number, status: LoadStatus): Promise<Song> {
-    const { data, error } = await getSupabase()
-      .from('songs')
-      .update({ load_status: status })
       .eq('id', id)
       .select()
       .single()
@@ -155,8 +141,7 @@ const songModel = {
       .from('songs')
       .update({
         ai_data: aiData,
-        ai_status: aiStatus,
-        load_status: aiStatus === 'completed' ? 'completed' : 'failed'
+        ai_status: aiStatus
       })
       .eq('id', id)
       .select()
