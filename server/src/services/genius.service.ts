@@ -9,6 +9,8 @@ export interface GeniusSongResult {
   id: number;
   title: string;
   artist: string;
+  artistId?: number;
+  artistThumbnail?: string;
   album?: string;
   albumArt?: string;
   releaseDate?: string;
@@ -105,6 +107,8 @@ export class GeniusService {
       id: result.id,
       title: result.title,
       artist: result.primary_artist?.name || 'Unknown',
+      artistId: result.primary_artist?.id,
+      artistThumbnail: result.primary_artist?.image_url,
       album: result.album?.name,
       albumArt: result.album?.cover_art_url || result.header_image_url,
       releaseDate: result.release_date,
@@ -117,6 +121,8 @@ export class GeniusService {
       id: song.id,
       title: song.title,
       artist: song.primary_artist?.name || 'Unknown',
+      artistId: song.primary_artist?.id,
+      artistThumbnail: song.primary_artist?.image_url,
       album: song.album?.name,
       albumArt: song.album?.cover_art_url || song.header_image_url,
       releaseDate: song.release_date,

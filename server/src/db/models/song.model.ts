@@ -3,19 +3,23 @@ import { Song, SongCreateInput, AiData, MetadataStatus, AiStatus } from '../../t
 
 const songModel = {
   async create(input: SongCreateInput): Promise<Song> {
+    const insertData: any = {
+      title: input.title,
+      artist: input.artist,
+      thumbnail: input.thumbnail || null,
+      metadata_status: 'pending',
+      ai_status: 'pending',
+      ai_data: {}
+    }
+
+    if (input.artist_id) insertData.artist_id = input.artist_id
+    if (input.metadata_provider) insertData.metadata_provider = input.metadata_provider
+    if (input.external_id) insertData.external_id = input.external_id
+    if (input.album_id) insertData.album_id = input.album_id
+
     const { data, error } = await getSupabase()
       .from('songs')
-      .insert([{
-        title: input.title,
-        artist: input.artist,
-        thumbnail: input.thumbnail || null,
-        metadata_provider: input.metadata_provider || 'genius',
-        external_id: input.external_id || '',
-        metadata_status: 'pending',
-        ai_status: 'pending',
-        ai_data: {},
-        album_id: input.album_id || null
-      }])
+      .insert([insertData])
       .select()
       .single()
 
@@ -26,7 +30,7 @@ const songModel = {
   async getByTitleAndArtist(title: string, artist: string): Promise<Song | null> {
     const { data, error } = await getSupabase()
       .from('songs')
-      .select('*, album:albums(*)')
+      .select('*, album:albums(*), artist_info:artists(*)')
       .ilike('title', title)
       .ilike('artist', artist)
       .single()
@@ -38,7 +42,7 @@ const songModel = {
   async getById(id: number): Promise<Song | null> {
     const { data, error } = await getSupabase()
       .from('songs')
-      .select('*, album:albums(*)')
+      .select('*, album:albums(*), artist_info:artists(*)')
       .eq('id', id)
       .single()
 
@@ -73,7 +77,7 @@ const songModel = {
   async findPendingMetadata(limit: number = 50): Promise<Song[]> {
     const { data, error } = await getSupabase()
       .from('songs')
-      .select('*, album:albums(*)')
+      .select('*, album:albums(*), artist_info:artists(*)')
       .eq('metadata_status', 'pending')
       .limit(limit)
 
@@ -84,7 +88,7 @@ const songModel = {
   async findPendingAi(limit: number = 50): Promise<Song[]> {
     const { data, error } = await getSupabase()
       .from('songs')
-      .select('*, album:albums(*)')
+      .select('*, album:albums(*), artist_info:artists(*)')
       .eq('ai_status', 'pending')
       .limit(limit)
 
@@ -128,6 +132,18 @@ const songModel = {
         external_id: metadata.external_id,
         album_id: metadata.album_id
       })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data as Song
+  },
+
+  async updateWithArtist(id: number, artistId: number): Promise<Song> {
+    const { data, error } = await getSupabase()
+      .from('songs')
+      .update({ artist_id: artistId })
       .eq('id', id)
       .select()
       .single()

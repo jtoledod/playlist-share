@@ -12,13 +12,34 @@ VALUES (
   NOW()
 );
 
+-- Insert sample artists
+INSERT INTO artists (metadata_provider, external_id, name, thumbnail, bio, created_at)
+VALUES
+  (
+    'genius',
+    '12345',
+    'Artist One',
+    'https://example.com/artist1.jpg',
+    'A sample artist for testing',
+    NOW()
+  ),
+  (
+    'genius',
+    '67890',
+    'Artist Two',
+    'https://example.com/artist2.jpg',
+    'Another sample artist for testing',
+    NOW()
+  );
+
 -- Insert sample songs
-INSERT INTO songs (metadata_provider, title, artist, external_id, thumbnail, metadata_status, ai_status, ai_data, created_at)
+INSERT INTO songs (metadata_provider, title, artist, artist_id, external_id, thumbnail, metadata_status, ai_status, ai_data, created_at)
 VALUES
   (
     'genius',
     'Sample Song One',
     'Artist One',
+    1,
     'dQw4w9WgXcQ',
     'https://i.ytimg.com/vi/dQw4w9WgXcQ/sddefault.jpg',
     'completed',
@@ -30,6 +51,7 @@ VALUES
     'genius',
     'Sample Song Two',
     'Artist Two',
+    2,
     'abc123def456',
     'https://i.ytimg.com/vi/abc123def456/sddefault.jpg',
     'completed',

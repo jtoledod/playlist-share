@@ -1,5 +1,6 @@
 import songModel from '../db/models/song.model'
 import albumModel from '../db/models/album.model'
+import artistModel from '../db/models/artist.model'
 import { getGeniusService } from './genius.service'
 import { Song } from '../types'
 import { createLogger } from '../logger.js'
@@ -51,6 +52,18 @@ export class MetadataWorkerService {
       }
 
       const details = await geniusService.getSongDetails(result.id)
+
+      if (details?.artistId) {
+        const artist = await artistModel.upsert({
+          metadata_provider: 'genius',
+          external_id: String(details.artistId),
+          name: details.artist,
+          thumbnail: details.artistThumbnail || null
+        })
+
+        await songModel.updateWithArtist(song.id, artist.id)
+        logger.info({ songId: song.id, title: song.title, artist: details.artist }, 'Artist linked')
+      }
 
       if (details?.album) {
         const album = await albumModel.upsert({

@@ -38,11 +38,30 @@ export interface Album {
   created_at: string
 }
 
+export interface Artist {
+  id: number
+  metadata_provider: MetadataProvider
+  external_id: string | null
+  name: string
+  thumbnail: string | null
+  bio: string | null
+  created_at: string
+}
+
+export interface ArtistCreateInput {
+  metadata_provider: MetadataProvider
+  external_id?: string | null
+  name: string
+  thumbnail?: string | null
+  bio?: string | null
+}
+
 export interface Song {
   id: number
   metadata_provider: MetadataProvider
   title: string
   artist: string
+  artist_id: number | null
   external_id: string | null
   thumbnail: string | null
   metadata_status: MetadataStatus
@@ -50,12 +69,14 @@ export interface Song {
   ai_data: AiData
   album_id: number | null
   album: Album | null
+  artist_info: Artist | null
   created_at: string
 }
 
 export interface SongCreateInput {
   title: string
   artist: string
+  artist_id?: number | null
   thumbnail: string | null
   metadata_provider?: MetadataProvider
   external_id?: string
