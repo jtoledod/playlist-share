@@ -1,5 +1,5 @@
 import { getSupabase } from '../index'
-import { Song, SongCreateInput, AiData, LoadStatus } from '../../types'
+import { Song, SongCreateInput, AiData, LoadStatus, MetadataStatus, AiStatus } from '../../types'
 
 const songModel = {
   async create(input: SongCreateInput): Promise<Song> {
@@ -9,9 +9,11 @@ const songModel = {
         title: input.title,
         artist: input.artist,
         thumbnail: input.thumbnail || null,
-        metadata_provider: input.metadata_provider || null,
-        external_id: input.external_id || null,
+        metadata_provider: input.metadata_provider || 'genius',
+        external_id: input.external_id || '',
         load_status: 'pending',
+        metadata_status: 'pending',
+        ai_status: 'pending',
         ai_data: {},
         album_id: input.album_id || null
       }])
@@ -80,6 +82,88 @@ const songModel = {
     }
 
     return song
+  },
+
+  async findPendingMetadata(limit: number = 50): Promise<Song[]> {
+    const { data, error } = await getSupabase()
+      .from('songs')
+      .select('*, album:albums(*)')
+      .eq('metadata_status', 'pending')
+      .limit(limit)
+
+    if (error) throw error
+    return data as Song[]
+  },
+
+  async findPendingAi(limit: number = 50): Promise<Song[]> {
+    const { data, error } = await getSupabase()
+      .from('songs')
+      .select('*, album:albums(*)')
+      .eq('ai_status', 'pending')
+      .limit(limit)
+
+    if (error) throw error
+    return data as Song[]
+  },
+
+  async updateMetadataStatus(id: number, status: MetadataStatus): Promise<Song> {
+    const { data, error } = await getSupabase()
+      .from('songs')
+      .update({ metadata_status: status })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data as Song
+  },
+
+  async updateAiStatus(id: number, status: AiStatus): Promise<Song> {
+    const { data, error } = await getSupabase()
+      .from('songs')
+      .update({ ai_status: status })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data as Song
+  },
+
+  async updateWithMetadata(id: number, metadata: {
+    metadata_provider: string
+    external_id: string
+    album_id: number
+  }): Promise<Song> {
+    const { data, error } = await getSupabase()
+      .from('songs')
+      .update({
+        metadata_provider: metadata.metadata_provider,
+        external_id: metadata.external_id,
+        album_id: metadata.album_id
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data as Song
+  },
+
+  async updateAiDataWithStatus(id: number, aiData: AiData, aiStatus: AiStatus): Promise<Song> {
+    const { data, error } = await getSupabase()
+      .from('songs')
+      .update({
+        ai_data: aiData,
+        ai_status: aiStatus,
+        load_status: aiStatus === 'completed' ? 'completed' : 'failed'
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data as Song
   }
 }
 

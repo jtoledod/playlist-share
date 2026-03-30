@@ -2,6 +2,10 @@ import { AiData } from '../services/gemini.service'
 
 export type LoadStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
+export type MetadataStatus = 'pending' | 'enriching' | 'completed' | 'failed'
+
+export type AiStatus = 'pending' | 'processing' | 'completed' | 'failed'
+
 export type MusicProvider = 'youtube' | 'spotify' | 'apple_music' | 'other'
 
 export type MetadataProvider = 'genius' | null
@@ -44,6 +48,8 @@ export interface Song {
   external_id: string | null
   thumbnail: string | null
   load_status: LoadStatus
+  metadata_status: MetadataStatus
+  ai_status: AiStatus
   ai_data: AiData
   album_id: number | null
   album: Album | null
