@@ -33,7 +33,7 @@ export interface Album {
   metadata_provider: MetadataProvider
   external_id: string | null
   name: string | null
-  cover_art: string | null
+  thumbnail: string | null
   release_date: string | null
   created_at: string
 }

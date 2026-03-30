@@ -1,4 +1,4 @@
-import songModel from '../db/models/song.model'
+import { songModel } from '../db/models/song.model'
 import { getGeminiService } from './gemini.service'
 import { Song } from '../types'
 import { createLogger } from '../logger.js'

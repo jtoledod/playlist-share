@@ -1,6 +1,6 @@
-import songModel from '../db/models/song.model'
-import albumModel from '../db/models/album.model'
-import artistModel from '../db/models/artist.model'
+import { songModel } from '../db/models/song.model'
+import { albumModel } from '../db/models/album.model'
+import { artistModel } from '../db/models/artist.model'
 import { getGeniusService } from './genius.service'
 import { Song } from '../types'
 import { createLogger } from '../logger.js'
@@ -70,7 +70,7 @@ export class MetadataWorkerService {
           metadata_provider: 'genius',
           external_id: String(result.id),
           name: details.album,
-          cover_art: details.albumArt || null,
+          thumbnail: details.albumArt || null,
           release_date: details.releaseDate || null
         })
 

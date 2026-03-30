@@ -1,7 +1,7 @@
 import { getSupabase } from '../index'
 import { Song, SongCreateInput, AiData, MetadataStatus, AiStatus } from '../../types'
 
-const songModel = {
+export class SongModel {
   async create(input: SongCreateInput): Promise<Song> {
     const insertData: any = {
       title: input.title,
@@ -25,7 +25,7 @@ const songModel = {
 
     if (error) throw error
     return data as Song
-  },
+  }
 
   async getByTitleAndArtist(title: string, artist: string): Promise<Song | null> {
     const { data, error } = await getSupabase()
@@ -37,7 +37,7 @@ const songModel = {
 
     if (error && error.code !== 'PGRST116') throw error
     return data as Song | null
-  },
+  }
 
   async getById(id: number): Promise<Song | null> {
     const { data, error } = await getSupabase()
@@ -48,31 +48,29 @@ const songModel = {
 
     if (error && error.code !== 'PGRST116') throw error
     return data as Song | null
-  },
+  }
 
   async updateAiData(id: number, aiData: AiData): Promise<Song> {
     const { data, error } = await getSupabase()
       .from('songs')
-      .update({
-        ai_data: aiData
-      })
+      .update({ ai_data: aiData })
       .eq('id', id)
       .select()
       .single()
 
     if (error) throw error
     return data as Song
-  },
+  }
 
   async findOrCreate(input: SongCreateInput): Promise<Song> {
-    let song = await this.getByTitleAndArtist(input.title, input.artist)
+    const song = await this.getByTitleAndArtist(input.title, input.artist)
 
     if (!song) {
-      song = await this.create(input)
+      return await this.create(input)
     }
 
     return song
-  },
+  }
 
   async findPendingMetadata(limit: number = 50): Promise<Song[]> {
     const { data, error } = await getSupabase()
@@ -83,7 +81,7 @@ const songModel = {
 
     if (error) throw error
     return data as Song[]
-  },
+  }
 
   async findPendingAi(limit: number = 50): Promise<Song[]> {
     const { data, error } = await getSupabase()
@@ -94,7 +92,7 @@ const songModel = {
 
     if (error) throw error
     return data as Song[]
-  },
+  }
 
   async updateMetadataStatus(id: number, status: MetadataStatus): Promise<Song> {
     const { data, error } = await getSupabase()
@@ -106,7 +104,7 @@ const songModel = {
 
     if (error) throw error
     return data as Song
-  },
+  }
 
   async updateAiStatus(id: number, status: AiStatus): Promise<Song> {
     const { data, error } = await getSupabase()
@@ -118,7 +116,7 @@ const songModel = {
 
     if (error) throw error
     return data as Song
-  },
+  }
 
   async updateWithMetadata(id: number, metadata: {
     metadata_provider: string
@@ -138,7 +136,7 @@ const songModel = {
 
     if (error) throw error
     return data as Song
-  },
+  }
 
   async updateWithArtist(id: number, artistId: number): Promise<Song> {
     const { data, error } = await getSupabase()
@@ -150,7 +148,7 @@ const songModel = {
 
     if (error) throw error
     return data as Song
-  },
+  }
 
   async updateAiDataWithStatus(id: number, aiData: AiData, aiStatus: AiStatus): Promise<Song> {
     const { data, error } = await getSupabase()
@@ -168,4 +166,4 @@ const songModel = {
   }
 }
 
-export default songModel
+export const songModel = new SongModel()

@@ -1,7 +1,7 @@
 import { getSupabase } from '../index'
 import { Artist, ArtistCreateInput, MetadataProvider } from '../../types'
 
-const artistModel = {
+export class ArtistModel {
   async upsert(input: ArtistCreateInput): Promise<Artist> {
     if (input.metadata_provider && input.external_id) {
       const existing = await this.getByMetadataProviderAndExternalId(input.metadata_provider, input.external_id)
@@ -37,7 +37,7 @@ const artistModel = {
 
     if (error) throw error
     return data as Artist
-  },
+  }
 
   async getById(id: number): Promise<Artist | null> {
     const { data, error } = await getSupabase()
@@ -48,7 +48,7 @@ const artistModel = {
 
     if (error && error.code !== 'PGRST116') throw error
     return data as Artist | null
-  },
+  }
 
   async getByMetadataProviderAndExternalId(metadataProvider: MetadataProvider, externalId: string): Promise<Artist | null> {
     const { data, error } = await getSupabase()
@@ -60,7 +60,7 @@ const artistModel = {
 
     if (error && error.code !== 'PGRST116') throw error
     return data as Artist | null
-  },
+  }
 
   async getByName(name: string): Promise<Artist | null> {
     const { data, error } = await getSupabase()
@@ -74,4 +74,4 @@ const artistModel = {
   }
 }
 
-export default artistModel
+export const artistModel = new ArtistModel()

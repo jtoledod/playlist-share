@@ -1,7 +1,7 @@
 import { getSupabase } from '../index'
 import { Playlist, PlaylistCreateInput, PlaylistSong, PlaylistSongCreateInput } from '../../types'
 
-const playlistModel = {
+export class PlaylistModel {
   async create(input: PlaylistCreateInput): Promise<Playlist> {
     const { data, error } = await getSupabase()
       .from('playlists')
@@ -17,7 +17,7 @@ const playlistModel = {
 
     if (error) throw error
     return data as Playlist
-  },
+  }
 
   async getByExternalId(provider: string, externalId: string): Promise<Playlist | null> {
     const { data, error } = await getSupabase()
@@ -29,7 +29,7 @@ const playlistModel = {
 
     if (error && error.code !== 'PGRST116') throw error
     return data as Playlist | null
-  },
+  }
 
   async getById(id: number): Promise<Playlist | null> {
     const { data, error } = await getSupabase()
@@ -40,7 +40,7 @@ const playlistModel = {
 
     if (error && error.code !== 'PGRST116') throw error
     return data as Playlist | null
-  },
+  }
 
   async addSong(input: PlaylistSongCreateInput): Promise<PlaylistSong> {
     const { data, error } = await getSupabase()
@@ -58,7 +58,7 @@ const playlistModel = {
 
     if (error) throw error
     return data as PlaylistSong
-  },
+  }
 
   async getSongs(playlistId: number): Promise<PlaylistSong[]> {
     const { data, error } = await getSupabase()
@@ -80,4 +80,4 @@ const playlistModel = {
   }
 }
 
-export default playlistModel
+export const playlistModel = new PlaylistModel()

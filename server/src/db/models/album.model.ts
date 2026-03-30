@@ -5,11 +5,11 @@ export interface AlbumCreateInput {
   metadata_provider?: MetadataProvider | null
   external_id?: string | null
   name: string | null
-  cover_art?: string | null
+  thumbnail?: string | null
   release_date?: string | null
 }
 
-const albumModel = {
+export class AlbumModel {
   async upsert(input: AlbumCreateInput): Promise<Album> {
     const insertData: any = {
       name: input.name
@@ -17,7 +17,7 @@ const albumModel = {
 
     if (input.metadata_provider) insertData.metadata_provider = input.metadata_provider
     if (input.external_id) insertData.external_id = input.external_id
-    if (input.cover_art) insertData.cover_art = input.cover_art
+    if (input.thumbnail) insertData.thumbnail = input.thumbnail
     if (input.release_date) insertData.release_date = input.release_date
 
     const { data, error } = await getSupabase()
@@ -28,7 +28,7 @@ const albumModel = {
 
     if (error) throw error
     return data as Album
-  },
+  }
 
   async getById(id: number): Promise<Album | null> {
     const { data, error } = await getSupabase()
@@ -39,7 +39,7 @@ const albumModel = {
 
     if (error && error.code !== 'PGRST116') throw error
     return data as Album | null
-  },
+  }
 
   async getByMetadataProviderAndExternalId(metadataProvider: string, externalId: string): Promise<Album | null> {
     const { data, error } = await getSupabase()
@@ -54,4 +54,4 @@ const albumModel = {
   }
 }
 
-export default albumModel
+export const albumModel = new AlbumModel()
