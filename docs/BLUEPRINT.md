@@ -6,27 +6,31 @@ Technical Source of Truth for AI agents and developers.
 
 ## Overview
 
-Provider-agnostic playlist import → Metadata enrichment → AI analysis → Share with friends → React & Comment
+Provider-agnostic playlist import → Metadata enrichment → AI analysis → Share
+with friends → React & Comment
 
-```
-Import Playlist (YouTube/Spotify/Apple Music) → Enrich metadata (Genius) → AI Analysis (Gemini) → Share → React/Comment
+```text
+Import Playlist (YouTube/Spotify/Apple Music) → Enrich metadata (Genius) →
+AI Analysis (Gemini) → Share → React/Comment
 ```
 
 ---
 
 ## Stack
 
-**Backend:** Node.js 22+, Express 5 (ESM), TypeScript, Pino, Supabase (PostgreSQL)
+**Backend:** Node.js 22+, Express 5 (ESM), TypeScript, Pino, Supabase
+(PostgreSQL)
 
 **Frontend:** Vue.js 3 (Composition API), Pinia, Tailwind CSS, Vite
 
-**External APIs:** YouTube Data API, Spotify API, Apple Music API, Genius API, Google Gemini 1.5 Flash
+**External APIs:** YouTube Data API, Spotify API, Apple Music API, Genius API,
+Google Gemini 1.5 Flash
 
 ---
 
 ## Project Structure
 
-```
+```text
 server/src/
 ├── index.ts                    # Express entry
 ├── env.ts                      # Environment config
@@ -62,7 +66,7 @@ server/src/
 ### playlists
 
 | Column | Type | Description |
-|--------|------|-------------|
+| ----- | ----- | ----- |
 | id | SERIAL | PK |
 | provider | TEXT | 'youtube' \| 'spotify' \| 'apple_music' \| 'other' |
 | external_id | TEXT | External playlist ID from provider |
@@ -74,7 +78,7 @@ server/src/
 ### songs
 
 | Column | Type | Description |
-|--------|------|-------------|
+| ----- | ----- | ----- |
 | id | SERIAL | PK |
 | metadata_provider | TEXT | Source of metadata (nullable) |
 | title | TEXT | Song title |
@@ -90,7 +94,7 @@ server/src/
 ### artists
 
 | Column | Type | Description |
-|--------|------|-------------|
+| ----- | ----- | ----- |
 | id | SERIAL | PK |
 | metadata_provider | TEXT | Source of metadata |
 | external_id | TEXT | External ID (nullable) |
@@ -101,7 +105,7 @@ server/src/
 ### albums
 
 | Column | Type | Description |
-|--------|------|-------------|
+| ----- | ----- | ----- |
 | id | SERIAL | PK |
 | metadata_provider | TEXT | Source of metadata (nullable) |
 | external_id | TEXT | External ID (nullable) |
@@ -112,7 +116,7 @@ server/src/
 ### playlist_songs
 
 | Column | Type | Description |
-|--------|------|-------------|
+| ----- | ----- | ----- |
 | id | SERIAL | PK |
 | playlist_id | INTEGER | FK to playlists |
 | song_id | INTEGER | FK to songs |
@@ -124,7 +128,7 @@ server/src/
 ### shares
 
 | Column | Type | Description |
-|--------|------|-------------|
+| ----- | ----- | ----- |
 | id | SERIAL | PK |
 | playlist_id | INTEGER | FK to playlists |
 | sender_id | UUID | FK to auth.users |
@@ -134,7 +138,7 @@ server/src/
 ### share_song_reactions
 
 | Column | Type | Description |
-|--------|------|-------------|
+| ----- | ----- | ----- |
 | id | SERIAL | PK |
 | share_id | INTEGER | FK to shares |
 | song_id | INTEGER | FK to songs |
@@ -144,7 +148,7 @@ server/src/
 ### share_comments
 
 | Column | Type | Description |
-|--------|------|-------------|
+| ----- | ----- | ----- |
 | id | SERIAL | PK |
 | share_id | INTEGER | FK to shares |
 | song_id | INTEGER | FK to songs |
@@ -173,11 +177,14 @@ interface AiData {
 }
 
 // Core Interfaces
-interface Playlist { id, provider, external_id, title, description, thumbnail, created_at }
-interface Song { id, metadata_provider, title, artist, artist_id, external_id, thumbnail, metadata_status, ai_status, ai_data, album_id }
+interface Playlist { id, provider, external_id, title, description, thumbnail,
+  created_at }
+interface Song { id, metadata_provider, title, artist, artist_id, external_id,
+  thumbnail, metadata_status, ai_status, ai_data, album_id }
 interface Share { id, playlist_id, sender_id, receiver_id, created_at }
 interface SongReaction { id, share_id, song_id, user_id, reaction }
-interface ReviewComment { id, share_id, song_id, parent_id, user_id, content, created_at, replies? }
+interface ReviewComment { id, share_id, song_id, parent_id, user_id, content,
+  created_at, replies? }
 ```
 
 ---
@@ -187,13 +194,13 @@ interface ReviewComment { id, share_id, song_id, parent_id, user_id, content, cr
 ### Health
 
 | Method | Endpoint | Auth Required |
-|--------|----------|---------------|
+| ----- | ----- | ----- |
 | GET | `/api/health` | No |
 
 ### Authentication (Supabase JWT)
 
 | Method | Endpoint | Auth Required |
-|--------|----------|---------------|
+| ----- | ----- | ----- |
 | POST | `/api/auth/register` | No |
 | POST | `/api/auth/login` | No |
 | POST | `/api/auth/login/google` | No |
@@ -206,7 +213,7 @@ interface ReviewComment { id, share_id, song_id, parent_id, user_id, content, cr
 ### Playlists
 
 | Method | Endpoint | Auth Required |
-|--------|----------|---------------|
+| ----- | ----- | ----- |
 | GET | `/api/playlists` | No |
 | GET | `/api/playlists/:id` | No |
 | POST | `/api/playlists/import` | Yes |
@@ -214,7 +221,7 @@ interface ReviewComment { id, share_id, song_id, parent_id, user_id, content, cr
 ### Shares
 
 | Method | Endpoint | Auth Required |
-|--------|----------|---------------|
+| ----- | ----- | ----- |
 | POST | `/api/shares` | Yes |
 | GET | `/api/shares/sent` | Yes |
 | GET | `/api/shares/received` | Yes |
@@ -223,14 +230,14 @@ interface ReviewComment { id, share_id, song_id, parent_id, user_id, content, cr
 ### Reactions
 
 | Method | Endpoint | Auth Required |
-|--------|----------|---------------|
+| ----- | ----- | ----- |
 | POST | `/api/shares/:id/reactions` | Yes |
 | DELETE | `/api/shares/:id/reactions/:songId` | Yes |
 
 ### Comments
 
 | Method | Endpoint | Auth Required |
-|--------|----------|---------------|
+| ----- | ----- | ----- |
 | POST | `/api/shares/:id/comments` | Yes |
 | PATCH | `/api/shares/:id/comments/:commentId` | Yes |
 | DELETE | `/api/shares/:id/comments/:commentId` | Yes |
@@ -272,7 +279,7 @@ class AiWorkerService {
 ## External APIs
 
 | API | Purpose | Rate Limit |
-|-----|---------|------------|
+| ----- | ----- | ----- |
 | YouTube Data API v3 | Playlist fetching | 10,000 quota units/day |
 | Spotify Web API | Playlist fetching | Varies by plan |
 | Apple Music API | Playlist fetching | Varies by plan |
@@ -308,7 +315,8 @@ npm run preview          # Preview production build
 2. **Async Workers** - Never block HTTP responses; workers run in background
 3. **Rate Limiting** - 1s (metadata), 2s (AI) to respect external APIs
 4. **Graceful Degradation** - AI runs even if metadata enrichment fails
-5. **Provider Agnostic** - `provider` and `external_id` fields support multiple music platforms
+5. **Provider Agnostic** - `provider` and `external_id` fields support multiple
+   music platforms
 6. **Token Refresh** - Access tokens expire; refresh token maintains session
 7. **Structured Logging** - Pino with service context
 8. **JSON Mode** - Gemini returns typed JSON via response schema

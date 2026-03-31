@@ -5,6 +5,7 @@
 **Phase 3: Frontend Development** - In Progress
 
 **Latest Updates:**
+
 - Playlist import now requires authentication
 - Public playlist listing endpoints added
 - Auth endpoints (8 routes) fully implemented

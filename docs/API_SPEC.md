@@ -6,13 +6,15 @@ Detailed endpoint documentation with request/response formats.
 
 ## Authentication
 
-All authenticated endpoints require a Supabase JWT access token in the Authorization header:
+All authenticated endpoints require a Supabase JWT access token in the
+Authorization header:
 
-```
+```text
 Authorization: Bearer <access_token>
 ```
 
 **Token Flow:**
+
 1. Login/Register returns `access_token` + `refresh_token`
 2. Include `access_token` in requests to protected endpoints
 3. When `access_token` expires, use `/api/auth/refresh` with `refresh_token`
@@ -29,6 +31,7 @@ Health check endpoint.
 **Auth:** No
 
 **Response:**
+
 ```json
 { "status": "ok" }
 ```
@@ -44,6 +47,7 @@ Register with email and password.
 **Auth:** No
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com",
@@ -52,6 +56,7 @@ Register with email and password.
 ```
 
 **Response (201):**
+
 ```json
 {
   "user": { "id": "uuid", "email": "user@example.com" },
@@ -73,6 +78,7 @@ Login with email and password.
 **Auth:** No
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com",
@@ -81,6 +87,7 @@ Login with email and password.
 ```
 
 **Response (200):**
+
 ```json
 {
   "user": { "id": "uuid", "email": "user@example.com" },
@@ -99,13 +106,15 @@ Initiate Google OAuth flow.
 **Request:** Empty body
 
 **Response (200):**
+
 ```json
 {
   "url": "https://accounts.google.com/oauth/authorize?..."
 }
 ```
 
-**Usage:** Redirect user to `url`, then exchange returned code for session via Supabase.
+**Usage:** Redirect user to `url`, then exchange returned code for session via
+Supabase.
 
 ---
 
@@ -118,6 +127,7 @@ Sign out current user.
 **Request:** Empty body
 
 **Response (200):**
+
 ```json
 { "message": "Logged out successfully" }
 ```
@@ -131,6 +141,7 @@ Get current authenticated user.
 **Auth:** Yes
 
 **Response (200):**
+
 ```json
 {
   "id": "uuid",
@@ -149,6 +160,7 @@ Refresh access token using refresh token.
 **Auth:** No
 
 **Request:**
+
 ```json
 {
   "refresh_token": "..."
@@ -156,6 +168,7 @@ Refresh access token using refresh token.
 ```
 
 **Response (200):**
+
 ```json
 {
   "access_token": "...",
@@ -174,6 +187,7 @@ Request password reset email.
 **Auth:** No
 
 **Request:**
+
 ```json
 {
   "email": "user@example.com"
@@ -181,6 +195,7 @@ Request password reset email.
 ```
 
 **Response (200):**
+
 ```json
 { "message": "Password reset email sent" }
 ```
@@ -194,6 +209,7 @@ Reset password using reset token.
 **Auth:** No
 
 **Request:**
+
 ```json
 {
   "token": "reset_token_from_email",
@@ -202,6 +218,7 @@ Reset password using reset token.
 ```
 
 **Response (200):**
+
 ```json
 { "message": "Password reset successfully" }
 ```
@@ -217,6 +234,7 @@ List all public playlists.
 **Auth:** No
 
 **Response (200):**
+
 ```json
 [
   {
@@ -242,6 +260,7 @@ Get playlist with songs.
 **Params:** `id` - Playlist ID
 
 **Response (200):**
+
 ```json
 {
   "id": 1,
@@ -278,6 +297,7 @@ Import playlist from URL.
 **Auth:** Yes
 
 **Request:**
+
 ```json
 {
   "url": "https://youtube.com/playlist?list=PLxxx",
@@ -286,6 +306,7 @@ Import playlist from URL.
 ```
 
 **Response (202):**
+
 ```json
 {
   "playlistId": 1,
@@ -294,6 +315,7 @@ Import playlist from URL.
 ```
 
 **Notes:**
+
 - Returns immediately; processing happens in background
 - `process_ai` defaults to `true`
 
@@ -308,6 +330,7 @@ Share playlist with another user.
 **Auth:** Yes
 
 **Request:**
+
 ```json
 {
   "playlist_id": 1,
@@ -316,6 +339,7 @@ Share playlist with another user.
 ```
 
 **Response (201):**
+
 ```json
 {
   "id": 1,
@@ -335,6 +359,7 @@ List playlists shared by current user.
 **Auth:** Yes
 
 **Response (200):**
+
 ```json
 [
   {
@@ -357,6 +382,7 @@ List playlists shared with current user.
 **Auth:** Yes
 
 **Response (200):**
+
 ```json
 [
   {
@@ -381,6 +407,7 @@ Get share with songs, reactions, and comments.
 **Params:** `id` - Share ID
 
 **Response (200):**
+
 ```json
 {
   "id": 1,
@@ -401,7 +428,12 @@ Get share with songs, reactions, and comments.
         "reaction": "love",
         "reaction_user_id": "receiver-uuid",
         "comments": [
-          { "id": 1, "user_id": "...", "content": "Great song!", "replies": [...] }
+          {
+            "id": 1,
+            "user_id": "...",
+            "content": "Great song!",
+            "replies": [...]
+          }
         ]
       }
     ]
@@ -422,6 +454,7 @@ Add or update reaction to a song.
 **Params:** `id` - Share ID
 
 **Request:**
+
 ```json
 {
   "song_id": 1,
@@ -430,6 +463,7 @@ Add or update reaction to a song.
 ```
 
 **Response (201):**
+
 ```json
 {
   "id": 1,
@@ -451,6 +485,7 @@ Remove reaction from a song.
 **Params:** `id` - Share ID, `songId` - Song ID
 
 **Response (200):**
+
 ```json
 { "message": "Reaction removed" }
 ```
@@ -468,6 +503,7 @@ Add comment to a song.
 **Params:** `id` - Share ID
 
 **Request:**
+
 ```json
 {
   "song_id": 1,
@@ -476,6 +512,7 @@ Add comment to a song.
 ```
 
 **Response (201):**
+
 ```json
 {
   "id": 1,
@@ -499,6 +536,7 @@ Edit own comment.
 **Params:** `id` - Share ID, `commentId` - Comment ID
 
 **Request:**
+
 ```json
 {
   "content": "Updated comment text"
@@ -506,6 +544,7 @@ Edit own comment.
 ```
 
 **Response (200):**
+
 ```json
 {
   "id": 1,
@@ -525,6 +564,7 @@ Delete own comment.
 **Params:** `id` - Share ID, `commentId` - Comment ID
 
 **Response (200):**
+
 ```json
 { "message": "Comment deleted" }
 ```
@@ -540,6 +580,7 @@ Reply to a comment.
 **Params:** `id` - Share ID, `commentId` - Parent comment ID
 
 **Request:**
+
 ```json
 {
   "content": "Great point! I agree."
@@ -547,6 +588,7 @@ Reply to a comment.
 ```
 
 **Response (201):**
+
 ```json
 {
   "id": 2,
@@ -566,28 +608,45 @@ Reply to a comment.
 All endpoints may return error responses:
 
 ### 400 Bad Request
+
 ```json
 { "error": "Invalid request body" }
 ```
 
+---
+
 ### 401 Unauthorized
+
 ```json
 { "error": "No authorization token provided" }
-// or
+```
+
+or
+
+```json
 { "error": "Invalid or expired token" }
 ```
 
+---
+
 ### 403 Forbidden
+
 ```json
 { "error": "You do not have permission to perform this action" }
 ```
 
+---
+
 ### 404 Not Found
+
 ```json
 { "error": "Resource not found" }
 ```
 
+---
+
 ### 500 Internal Server Error
+
 ```json
 { "error": "Internal server error", "details": "..." }
 ```
