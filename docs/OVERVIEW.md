@@ -1,6 +1,6 @@
 # playlist-share (Alpha)
 
-**playlist-share** is a collaborative web platform for music enthusiasts. Users can import YouTube playlists, which are enriched with AI-generated insights (via Gemini), and share them with friends to exchange reactions and comments on individual songs.
+**playlist-share** is a collaborative web platform for music enthusiasts. Users can import music playlists, which are enriched with AI-generated insights (via Gemini), and share them with friends to exchange reactions and comments on individual songs.
 
 ---
 
@@ -20,6 +20,11 @@ The core goal is creating a structured feedback loop for shared music discovery.
 ## Current Status
 
 **Phase 3: Frontend Development** - In Progress
+
+**Latest Updates:**
+- Playlist routes now require auth for import
+- Added public playlist listing endpoints
+- Auth endpoints (8 routes) fully implemented
 
 ---
 

@@ -8,6 +8,10 @@ Import YouTube playlists → Enrich metadata (Genius) → Share with friends →
 
 Node.js 22+, Express 5 (ESM), TypeScript, Supabase (PostgreSQL), Pino, Google Gemini
 
+## Frontend Stack
+
+Vue.js 3 (Composition API), Pinia (state management), Tailwind CSS, Vite
+
 ## Structure
 
 ```
@@ -152,53 +156,49 @@ interface ReviewComment {
 
 ### Auth
 
-```
-POST   /api/auth/register          - Email/password signup
-POST   /api/auth/login             - Email/password login
-POST   /api/auth/login/google     - Returns OAuth URL to redirect
-POST   /api/auth/logout            - Sign out (auth required)
-GET    /api/auth/me                - Get current user (auth required)
-POST   /api/auth/refresh           - Refresh access token
-POST   /api/auth/forgot-password   - Request password reset email
-POST   /api/auth/reset-password    - Reset password with token
-```
+| Method | Endpoint | Auth Required |
+|--------|----------|---------------|
+| POST | `/api/auth/register` | No |
+| POST | `/api/auth/login` | No |
+| POST | `/api/auth/login/google` | No |
+| POST | `/api/auth/logout` | Yes |
+| GET | `/api/auth/me` | Yes |
+| POST | `/api/auth/refresh` | No |
+| POST | `/api/auth/forgot-password` | No |
+| POST | `/api/auth/reset-password` | No |
 
-### POST /api/playlists/import
+### Playlists
 
-```json
-// Request
-{ "url": "https://youtube.com/playlist?list=xxx", "process_ai": true }
+| Method | Endpoint | Auth Required |
+|--------|----------|---------------|
+| GET | `/api/playlists` | No |
+| GET | `/api/playlists/:id` | No |
+| POST | `/api/playlists/import` | Yes |
 
-// Response (202)
-{ "playlistId": 123, "status": "importing" }
-```
+### Shares (Auth Required)
 
-### Shares (requires auth)
+| Method | Endpoint |
+|--------|----------|
+| POST | `/api/shares` |
+| GET | `/api/shares/sent` |
+| GET | `/api/shares/received` |
+| GET | `/api/shares/:id` |
 
-```
-POST   /api/shares              - Share playlist with user
-GET    /api/shares/sent         - List sent shares
-GET    /api/shares/received     - List received shares  
-GET    /api/shares/:id          - Get share with songs, reactions, comments
-```
+### Reactions (Auth Required)
 
-### Reactions
+| Method | Endpoint |
+|--------|----------|
+| POST | `/api/shares/:id/reactions` |
+| DELETE | `/api/shares/:id/reactions/:songId` |
 
-```
-POST   /api/shares/:id/reactions     - Add/update reaction (song_id, reaction)
-DELETE /api/shares/:id/reactions/:songId - Remove reaction
-```
+### Comments (Auth Required)
 
-### Comments
-
-```
-POST   /api/shares/:id/comments           - Add comment (song_id, content)
-PATCH  /api/shares/:id/comments/:commentId - Edit own comment
-DELETE /api/shares/:id/comments/:commentId - Delete own comment
-POST   /api/shares/:id/comments/:commentId/reply - Reply to comment
-```
-
-## Workers
+| Method | Endpoint |
+|--------|----------|
+| POST | `/api/shares/:id/comments` |
+| PATCH | `/api/shares/:id/comments/:commentId` |
+| DELETE | `/api/shares/:id/comments/:commentId` |
+| POST | `/api/shares/:id/comments/:commentId/reply` |
 
 ### MetadataWorkerService
 
@@ -249,6 +249,14 @@ analyzeSong(title, artist): Promise<AiData>
 ```
 
 Model: gemini-3-flash-preview, JSON schema enforced
+
+## External APIs
+
+| API | Purpose | Rate Limit |
+|-----|---------|------------|
+| YouTube Data API v3 | Playlist fetching | 10,000 quota units/day |
+| Genius API | Song metadata enrichment | 60 requests/minute |
+| Google Gemini 1.5 Flash | AI-powered song analysis | 15 requests/minute (free tier) |
 
 ## Build
 

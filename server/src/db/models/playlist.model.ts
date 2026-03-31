@@ -78,6 +78,24 @@ export class PlaylistModel {
     if (error) throw error
     return data as PlaylistSong[]
   }
+
+  async findAll(): Promise<Playlist[]> {
+    const { data, error } = await getSupabase()
+      .from('playlists')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data as Playlist[]
+  }
+
+  async findByIdWithSongs(id: number): Promise<(Playlist & { songs: PlaylistSong[] }) | null> {
+    const playlist = await this.getById(id)
+    if (!playlist) return null
+
+    const songs = await this.getSongs(id)
+    return { ...playlist, songs }
+  }
 }
 
 export const playlistModel = new PlaylistModel()
