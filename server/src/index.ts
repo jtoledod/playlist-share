@@ -4,6 +4,7 @@ import express, { Request, Response } from 'express'
 import cors from 'cors'
 import playlistRoutes from './routes/playlist.routes'
 import shareRoutes from './routes/share.routes'
+import authRoutes from './routes/auth.routes'
 import { logger } from './logger.js'
 
 const app = express()
@@ -12,6 +13,7 @@ const PORT = process.env.PORT || 3000
 app.use(cors())
 app.use(express.json())
 
+app.use('/api/auth', authRoutes)
 app.use('/api/playlists', playlistRoutes)
 app.use('/api/shares', shareRoutes)
 

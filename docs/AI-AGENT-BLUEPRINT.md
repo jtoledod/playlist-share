@@ -28,7 +28,8 @@ server/src/
 │   └── share.controller.ts
 ├── routes/
 │   ├── playlist.routes.ts
-│   └── share.routes.ts
+│   ├── share.routes.ts
+│   └── auth.routes.ts
 └── db/models/            # song, playlist, album, artist, share, shareSongReaction, shareComment models
 ```
 
@@ -101,7 +102,7 @@ server/src/
 | user_id | UUID | FK to auth.users |
 | content | TEXT | Comment text |
 
-Migrations: `001` → `012` (apply in order)
+Migrations: `001` → `013` (apply in order)
 
 ## Types
 
@@ -147,6 +148,19 @@ interface ReviewComment {
 
 ```json
 { "status": "ok" }
+```
+
+### Auth
+
+```
+POST   /api/auth/register          - Email/password signup
+POST   /api/auth/login             - Email/password login
+POST   /api/auth/login/google     - Returns OAuth URL to redirect
+POST   /api/auth/logout            - Sign out (auth required)
+GET    /api/auth/me                - Get current user (auth required)
+POST   /api/auth/refresh           - Refresh access token
+POST   /api/auth/forgot-password   - Request password reset email
+POST   /api/auth/reset-password    - Reset password with token
 ```
 
 ### POST /api/playlists/import
@@ -255,3 +269,5 @@ npm run start  # node dist/index.js
 7. **Graceful Degradation** - AI runs even if metadata fails
 8. **Nullable Metadata** - external_id and metadata_provider nullable when no enrichment data
 9. **Auth Middleware** - Supabase JWT validation for protected routes
+10. **Supabase Auth** - Email/password + Google OAuth built-in
+11. **Token Refresh** - Access tokens expire, refresh token keeps session

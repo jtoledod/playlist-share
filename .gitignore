@@ -35,6 +35,3 @@ coverage/
 # Temporary files
 *.tmp
 
-# Internal docs
-docs/
-
